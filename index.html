@@ -1,9 +1,132 @@
 <!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#b2c88c"><meta name="description" content="Salvá la ropa antes de la tormenta. Un juego de patio, estrategia y pequeñas decisiones."><title>Antes de la lluvia · Un juego de patio</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f6f2e7'/%3E%3Cpath d='M8 12h16l-2 14H10z' fill='%23bb754c'/%3E%3Cpath d='M11 13V9a5 5 0 0 1 10 0v4' fill='none' stroke='%233c5547' stroke-width='3'/%3E%3C/svg%3E"><link rel="stylesheet" href="style.css"><script defer src="game.js"></script></head>
-<body><div id="weather-veil" class="weather-veil" aria-hidden="true"></div><main class="shell"><header><button id="sound" class="icon-button" aria-label="Activar sonido" aria-pressed="false">♫ <span>Sonido apagado</span></button></header>
-<section class="intro" aria-label="Antes de la lluvia"><div class="title-garden"><svg class="flowers" viewBox="0 0 640 120" aria-hidden="true"><defs><g id="flower"><path d="M0 0v26m0-8-12-7h9l3 7m0 0 12-7h-9z" fill="#628348" stroke="#628348" stroke-width="3"/><path d="M-6-14H6v8h8V6H6v8H-6V6h-8V-6h8z" fill="currentColor"/><path d="M-5-5H5V5H-5z" fill="#e9ba60"/></g></defs><path d="M35 77 66 60 94 76 116 69m408 0 21 7 30-16 30 17" fill="none" stroke="#68884c" stroke-width="5"/><use href="#flower" x="45" y="49" color="#f1dfb5"/><use href="#flower" x="81" y="65" color="#dda08a" transform="rotate(-10 81 65)"/><use href="#flower" x="111" y="36" color="#f0db9e" transform="scale(.8) translate(27 10)"/><use href="#flower" x="595" y="49" color="#f1dfb5"/><use href="#flower" x="559" y="65" color="#dda08a" transform="rotate(10 559 65)"/><use href="#flower" x="530" y="36" color="#f0db9e"/></svg><p class="title-kicker">UN JUEGO DE PATIO</p><h1>Antes de la <em>lluvia</em></h1><p class="title-caption">La ropa espera. El cielo no.</p></div></section>
-<section class="game-frame" aria-label="Juego Antes de la lluvia"><div class="hud"><div class="level-chip"><span id="level-label">NIVEL 01 / 03</span><strong id="level-name">Tranquilo</strong></div><div class="stat timer"><span id="weather-label">LLUVIA EN</span><strong><span id="timer">20</span><small id="timer-unit"> s</small></strong></div><div class="stat score-stat"><span>PUNTOS GUARDADOS</span><strong id="score">000</strong></div><div class="stat basket-stat"><span>CANASTO</span><strong><span id="capacity">0</span><small> / 6</small></strong><div class="capacity-track"><i id="capacity-bar"></i></div></div><button id="pause" class="icon-button pause" aria-label="Pausar juego" disabled>Ⅱ</button></div>
-<div class="stage"><canvas id="game" width="1000" height="640" aria-label="Patio visto desde arriba, con una casa arriba a la izquierda y tres sogas distribuidas por el mapa. Usá WASD o flechas para moverte y mantené Espacio para recoger."></canvas><div id="overlay" class="overlay"><div id="panel" class="panel"></div></div><div id="toast" class="toast" role="status" aria-live="polite"></div></div>
-<div class="game-bottom"><span id="hint"><i class="status-dot"></i> Un cielo tranquilo… por ahora.</span><button id="help" class="text-button">Cómo jugar <span>↗</span></button></div>
-<div class="touch-controls" aria-label="Controles táctiles"><div class="dpad"><button data-key="up left" aria-label="Arriba izquierda">↖</button><button data-key="up" aria-label="Arriba">↑</button><button data-key="up right" aria-label="Arriba derecha">↗</button><button data-key="left" aria-label="Izquierda">←</button><span aria-hidden="true">✥</span><button data-key="right" aria-label="Derecha">→</button><button data-key="down left" aria-label="Abajo izquierda">↙</button><button data-key="down" aria-label="Abajo">↓</button><button data-key="down right" aria-label="Abajo derecha">↘</button></div><button class="collect-touch" data-key="collect">RECOGER<span>Mantené presionado</span></button></div></section>
-<footer class="field-guide"><span><kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> Caminar</span><span><kbd>ESPACIO</kbd> Descolgar</span><span>⌂ Volvé a casa para guardar</span></footer></main></body></html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b2c88c">
+<meta name="description" content="Salvá la ropa antes de la tormenta. Un juego de patio, estrategia y pequeñas decisiones.">
+<title>Antes de la lluvia · Un juego de patio</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f6f2e7'/%3E%3Cpath d='M8 12h16l-2 14H10z' fill='%23bb754c'/%3E%3Cpath d='M11 13V9a5 5 0 0 1 10 0v4' fill='none' stroke='%233c5547' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<script defer src="js/core/namespace.js"></script>
+<script defer src="js/config/game-config.js"></script>
+<script defer src="js/core/math.js"></script>
+<script defer src="js/ui/dom.js"></script>
+<script defer src="js/audio/audio.js"></script>
+<script defer src="js/core/state.js"></script>
+<script defer src="js/systems/player.js"></script>
+<script defer src="js/systems/collection.js"></script>
+<script defer src="js/systems/weather.js"></script>
+<script defer src="js/systems/effects.js"></script>
+<script defer src="js/ui/hud.js"></script>
+<script defer src="js/ui/screens.js"></script>
+<script defer src="js/rendering/drawing.js"></script>
+<script defer src="js/rendering/sprites.js"></script>
+<script defer src="js/rendering/world.js"></script>
+<script defer src="js/rendering/renderer.js"></script>
+<script defer src="js/input/controls.js"></script>
+<script defer src="js/rendering/camera.js"></script>
+<script defer src="js/core/engine.js"></script>
+<script defer src="js/integrations/webmcp.js"></script>
+<script defer src="js/main.js"></script>
+</head>
+<body>
+<div id="weather-veil" class="weather-veil" aria-hidden="true">
+</div>
+<main class="shell">
+<header>
+<button id="sound" class="icon-button" aria-label="Activar sonido" aria-pressed="false">♫ <span>Sonido apagado</span>
+</button>
+</header>
+<section class="intro" aria-label="Antes de la lluvia">
+<div class="title-garden">
+<svg class="flowers" viewBox="0 0 640 120" aria-hidden="true">
+<defs>
+<g id="flower">
+<path d="M0 0v26m0-8-12-7h9l3 7m0 0 12-7h-9z" fill="#628348" stroke="#628348" stroke-width="3"/>
+<path d="M-6-14H6v8h8V6H6v8H-6V6h-8V-6h8z" fill="currentColor"/>
+<path d="M-5-5H5V5H-5z" fill="#e9ba60"/>
+</g>
+</defs>
+<path d="M35 77 66 60 94 76 116 69m408 0 21 7 30-16 30 17" fill="none" stroke="#68884c" stroke-width="5"/>
+<use href="#flower" x="45" y="49" color="#f1dfb5"/>
+<use href="#flower" x="81" y="65" color="#dda08a" transform="rotate(-10 81 65)"/>
+<use href="#flower" x="111" y="36" color="#f0db9e" transform="scale(.8) translate(27 10)"/>
+<use href="#flower" x="595" y="49" color="#f1dfb5"/>
+<use href="#flower" x="559" y="65" color="#dda08a" transform="rotate(10 559 65)"/>
+<use href="#flower" x="530" y="36" color="#f0db9e"/>
+</svg>
+<p class="title-kicker">UN JUEGO DE PATIO</p>
+<h1>Antes de la <em>lluvia</em>
+</h1>
+<p class="title-caption">La ropa espera. El cielo no.</p>
+</div>
+</section>
+<section class="game-frame" aria-label="Juego Antes de la lluvia">
+<div class="hud">
+<div class="level-chip">
+<span id="level-label">NIVEL 01 / 03</span>
+<strong id="level-name">Tranquilo</strong>
+</div>
+<div class="stat timer">
+<span id="weather-label">LLUVIA EN</span>
+<strong>
+<span id="timer">20</span>
+<small id="timer-unit"> s</small>
+</strong>
+</div>
+<div class="stat score-stat">
+<span>PUNTOS GUARDADOS</span>
+<strong id="score">000</strong>
+</div>
+<div class="stat basket-stat">
+<span>CANASTO</span>
+<strong>
+<span id="capacity">0</span>
+<small> / 6</small>
+</strong>
+<div class="capacity-track">
+<i id="capacity-bar">
+</i>
+</div>
+</div>
+<button id="pause" class="icon-button pause" aria-label="Pausar juego" disabled>Ⅱ</button>
+</div>
+<div class="stage">
+<canvas id="game" width="1000" height="640" aria-label="Patio visto desde arriba, con una casa arriba a la izquierda y tres sogas distribuidas por el mapa. Usá WASD o flechas para moverte y mantené Espacio para recoger.">
+</canvas>
+<div id="overlay" class="overlay">
+<div id="panel" class="panel">
+</div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite">
+</div>
+</div>
+<div class="game-bottom">
+<span id="hint">
+<i class="status-dot">
+</i> Un cielo tranquilo… por ahora.</span>
+<button id="help" class="text-button">Cómo jugar <span>↗</span>
+</button>
+</div>
+<div class="touch-controls" aria-label="Controles táctiles">
+<div id="joystick" class="joystick" role="group" aria-label="Joystick: arrastrá para caminar">
+<span id="joystick-knob" class="joystick-knob">
+</span>
+</div>
+<button class="collect-touch" data-key="collect">
+<span class="collect-icon" aria-hidden="true">▧</span>RECOGER</button>
+</div>
+</section>
+<p class="mobile-guide">Arrastrá el joystick circular para caminar.<br>Mantené <b>RECOGER</b> con el otro dedo. ↻ Podés girar el celular.</p>
+<footer class="field-guide">
+<span>
+<kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> Caminar</span>
+<span>
+<kbd>ESPACIO</kbd> Descolgar</span>
+<span>⌂ Volvé a casa para guardar</span>
+</footer>
+</main>
+</body>
+</html>
+
