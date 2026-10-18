@@ -74,11 +74,11 @@
   }
 
   /** Pausa la simulación y suelta los controles; si estaba pausada, reanuda. */
-  function pause() {
+  function pause(suppressSave = false) {
     if (Game.state.current.mode === 'playing') {
       Game.state.current.mode = 'paused';
       Game.engine.resetTime();
-      Game.saves?.auto('pausa');
+      if (suppressSave !== true) Game.saves?.auto('pausa');
       Game.controls.clearInputs();
       Game.audio.weather(0);
       Game.dom.byId('pause').textContent = '▶';
@@ -97,7 +97,8 @@ ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">
   }
 
   /** Reanuda la partida y oculta el tablón de pausa. */
-  function resume() {
+  function resume(force = false) {
+    if (Game.saves?.replacing && !force) return;
     Game.engine.resetTime();
     Game.state.current.mode = 'playing';
     Game.dom.byId('overlay').hidden = true;
@@ -146,7 +147,10 @@ Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length}
 <p>
 <b>1.</b> Movete en 8 direcciones con WASD, flechas o el joystick circular.<br>
 <b>2.</b> Acercate a una prenda desde cualquier lado y mantené Espacio o Recoger. Si soltás, el progreso se reinicia.<br>
-<b>3.</b> Llevá el canasto a la puerta de la casa, arriba a la izquierda.<br>Seca: 100% · Húmeda: 50% · Empapada: 0%.<br>★ Cuero seco: ¡puntos dobles! La ropa del canasto también se moja: guardala en casa.</p>
+<b>3.</b> Llevá el canasto a la puerta de la casa, arriba a la izquierda.<br>Seca: 100% · Húmeda: 50% · Empapada: 0%.<br>★ Cuero seco: ¡puntos dobles! La ropa del canasto también se moja: guardala en casa.<br>
+<b>4.</b> El canasto tiene 6 unidades de volumen: una sábana ocupa 3.<br>
+<b>5.</b> Al terminar el día, elegí seguir en el patio o avanzar. La ropa pendiente y los puntos se conservan. También podés finalizar desde Pausa.<br>
+<b>6.</b> En Partidas y respaldos podés guardar o descargar una copia JSON. El juego guarda automáticamente mientras jugás.</p>
 <button class="primary" data-action="closeHelp">¡ENTENDIDO!</button>`);
   }
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */

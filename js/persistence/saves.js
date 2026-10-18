@@ -60,7 +60,7 @@
     elapsed = 0;
     Game.engine.resetTime();
     Game.runtime.clock = 0;
-    Game.screens.resume();
+    Game.screens.resume(true);
     if (state.dayEnded) Game.screens.daySummary();
     Game.hud.update();
   }
@@ -68,6 +68,7 @@
   /** Toda acción que reemplaza una partida pasa por este bloqueo. */
   async function exclusive(action) {
     if (!ready || busy) { status('Esperá a que termine la operación actual.'); return false; }
+    if (Game.state.current.mode === 'playing') Game.screens.pause(true);
     busy = true;
     try { return await action(); }
     catch (error) { failure(error); return false; }
@@ -91,7 +92,7 @@
 
   function continueGame() {
     return exclusive(async () => {
-      if (active) { Game.screens.resume(); return true; }
+      if (active) { Game.screens.resume(true); return true; }
       await queue;
       const envelope = await Game.database.read();
       if (!envelope) { status('No hay partida guardada. Elegí Nueva partida.'); return false; }
@@ -113,10 +114,10 @@
     });
   }
 
-  function recover() {
+  function recover(key = 'previous') {
     return exclusive(async () => {
       await queue;
-      const envelope = await Game.database.read('previous');
+      const envelope = await Game.database.read(key);
       if (!envelope) { status('No hay copia anterior disponible. Podés importar un archivo JSON.'); return false; }
       const state = Game.saveFormat.restore(envelope);
       if (!window.confirm(`¿Recuperar la copia anterior del día ${state.day}? Se respaldará la partida reemplazada.`)) return false;
@@ -134,5 +135,5 @@
   }
   Game.saves = { init, save, auto, tick, start, continueGame, importText, recover,
     exportText, failure, status, get message() { return message; },
-    get active() { return active; }, get busy() { return busy || !ready; } };
+    get active() { return active; }, get replacing() { return busy; }, get busy() { return busy || !ready; } };
 })();

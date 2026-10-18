@@ -1316,7 +1316,9 @@ body {
   }
 
   .level-chip strong {
-    font-size:9px
+    font-size:9px;
+    white-space:pre-line;
+    line-height:1.1
   }
 
   .stat strong {
@@ -1391,6 +1393,11 @@ html {
 
   .level-chip>span,.stat>span {
     font-size:6px
+  }
+
+  /* Conserva la etiqueta abreviada sin duplicar el texto en horizontal. */
+  .score-stat>span {
+    font-size:0
   }
 
   .level-chip strong {

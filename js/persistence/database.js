@@ -58,5 +58,14 @@
       tx.onabort = tx.onerror = () => reject(new Error('No se pudo guardar (espacio o permisos). La copia anterior se conserva. Exportá un respaldo.'));
     });
   }
-  Game.database = { read, write };
+  async function backups() {
+    const db = await open();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction('saves', 'readonly');
+      const request = tx.objectStore('saves').getAllKeys();
+      tx.oncomplete = () => resolve(request.result.filter(key => typeof key === 'string' && key.startsWith('backup-')).sort().reverse());
+      tx.onabort = tx.onerror = () => reject(new Error('No se pudieron consultar los respaldos.'));
+    });
+  }
+  Game.database = { read, write, backups };
 })();

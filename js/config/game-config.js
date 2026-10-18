@@ -139,6 +139,7 @@
     types: ['sheet', 'shirt', 'pants', 'jacket', 'sock', 'blouse', 'sheet', 'pants', 'jacket', 'shirt', 'leather', 'leather']
   }];
   Game.config = {
+    simulation: { daySeconds: 240, stepSeconds: 1 / 60 },
     settings: CONFIG,
     ropes: ROPES,
     obstacles: OBSTACLES,

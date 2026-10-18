@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const Game = window.RainGame;
-  const defaults = { daySeconds: 240, stepSeconds: 1 / 60 };
+  const defaults = Game.config.simulation;
   const types = ['sock', 'shirt', 'pants', 'sheet', 'blouse', 'shirt', 'jacket', 'sock'];
 
   /** Solo ocupa lugares libres; la ropa pendiente nunca se reemplaza. */

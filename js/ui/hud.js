@@ -34,7 +34,7 @@
     const gameState = Game.state.current;
     Game.dom.byId('weather-veil').style.opacity = Game.utils.clamp(gameState.elapsed / (Game.state.weather().delay + 14), 0, 1) * .32;
     Game.dom.byId('level-label').textContent = `NIVEL 0${gameState.index + 1} / 03`;
-    Game.dom.byId('level-name').textContent = gameState.campaign ? Game.calendar.phase(gameState) + ' ' + Game.calendar.time(gameState) : Game.state.weather().name;
+    Game.dom.byId('level-name').textContent = gameState.campaign ? Game.calendar.phase(gameState) + '\n' + Game.calendar.time(gameState) : Game.state.weather().name;
     if (gameState.campaign) Game.dom.byId('level-label').textContent = `DÍA ${gameState.day}`;
     Game.dom.byId('capacity-max').textContent = Game.collection.capacity();
     Game.dom.byId('timer').textContent = gameState.rainStarted ? '☂' : Math.max(0, Math.ceil(Game.state.weather().delay - gameState.elapsed));

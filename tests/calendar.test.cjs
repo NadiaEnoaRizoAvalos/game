@@ -77,3 +77,31 @@ test('Noche presenta resumen sin borrar ropa ni forzar el día siguiente', () =>
   game.calendar.advanceDay();
   assert.equal(s.day, 2);
 });
+
+test('Un frame de 6 segundos y frames fraccionarios conservan tiempo y humedad', () => {
+  const run = timestamps => {
+    const { game } = createGame();
+    game.screens.startCampaign();
+    game.state.current.weatherProfile.delay = 0;
+    game.engine.frame(0);
+    timestamps.forEach(time => game.engine.frame(time));
+    return game.state.current;
+  };
+  const slow = run([6000, 6007, 6017]);
+  const fast = run([...Array.from({ length: 360 }, (_, i) => (i + 1) * 1000 / 60), 6007, 6017]);
+  assert.ok(Math.abs(slow.elapsed - fast.elapsed) < 1e-9);
+  assert.ok(Math.abs(slow.elapsed - 6.0166666667) < 1e-8);
+  assert.ok(Math.abs(slow.items[0].wetness - fast.items[0].wetness) < 1e-9);
+});
+
+test('La duración configurada se aplica a nuevas partidas sin depender de niveles', () => {
+  const { game } = createGame();
+  game.config.simulation.daySeconds = 120;
+  game.config.levels = [];
+  game.screens.startCampaign();
+  assert.equal(game.state.current.daySeconds, 120);
+  assert.equal(game.state.current.weatherProfile.delay, 54);
+  game.engine.update(1);
+  game.renderer.render();
+  assert.equal(game.state.current.elapsed, 1);
+});

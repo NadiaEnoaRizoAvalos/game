@@ -174,3 +174,28 @@ test('Nueva partida necesita confirmación y conserva copia de la anterior', asy
   assert.equal(game.state.current.resources.money, 0);
   assert.equal(records.get('backup').data.resources.money, 99);
 });
+
+test('No se reanuda la simulación durante un reemplazo asíncrono', async () => {
+  const { game } = await setup();
+  await game.saves.start();
+  const text = game.saves.exportText();
+  const replacing = game.saves.importText(text);
+  assert.equal(game.saves.replacing, true);
+  game.screens.resume();
+  assert.equal(game.state.current.mode, 'paused');
+  const elapsed = game.state.current.elapsed;
+  game.engine.update(2);
+  assert.equal(game.state.current.elapsed, elapsed);
+  assert.equal(await replacing, true);
+  assert.equal(game.state.current.mode, 'playing');
+});
+
+test('Una base no disponible permite jugar y exportar sin fingir un guardado', async () => {
+  const { game } = await setup();
+  game.database.write = async () => { throw new Error('Almacenamiento no disponible'); };
+  assert.equal(await game.saves.start(), true);
+  assert.equal(game.saves.active, true);
+  assert.match(game.saves.message, /no disponible/);
+  assert.equal(JSON.parse(game.saves.exportText()).data.day, 1);
+  await assert.rejects(game.saves.save(), /no disponible/);
+});

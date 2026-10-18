@@ -85,6 +85,14 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     await page.locator('#import-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"version":99}') });
     await page.waitForFunction(() => document.getElementById('save-status').textContent.includes('inválida'));
     assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 456);
+    // El respaldo del reemplazo sigue accesible después de varios autoguardados.
+    await page.evaluate(async () => { await window.RainGame.saves.save(); await window.RainGame.saves.save(); });
+    await page.locator('[data-action="backups"]').click();
+    await page.locator('[data-action^="backup-"]').first().waitFor();
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('[data-action^="backup-"]').first().click();
+    await page.waitForFunction(() => window.RainGame.state.current.resources.money === 123);
+    await page.evaluate(() => window.RainGame.screens.pause());
     // Un aborto real de IndexedDB deja current intacto.
     assert.equal(await page.evaluate(async () => {
       const g = window.RainGame;
@@ -111,14 +119,26 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const phone = await openPage(mobile);
     await phone.locator('[data-action="start"]').click();
     await phone.waitForFunction(() => window.RainGame.saves.active);
+    const touch = await mobile.newCDPSession(phone);
     for (const [width, height, name] of [[390, 844, 'portrait'], [844, 390, 'landscape'], [320, 568, 'small']]) {
       await phone.setViewportSize({ width, height });
       await phone.evaluate(() => { window.RainGame.camera.configureViewport(); window.RainGame.screens.resume(); });
       const joystick = phone.locator('#joystick');
+      const pauseBox = await phone.locator('#pause').boundingBox();
+      assert.ok(pauseBox && pauseBox.y < 40, 'La pausa no debe superponerse a la ayuda');
       const box = await joystick.boundingBox();
       assert.ok(box && box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1);
       const action = await phone.locator('[data-key="collect"]').boundingBox();
       assert.ok(action && action.x >= 0 && action.y >= 0 && action.x + action.width <= width + 1 && action.y + action.height <= height + 1);
+      const points = [{ x: box.x + box.width / 2, y: box.y + box.height / 2, id: 1 },
+        { x: action.x + action.width / 2, y: action.y + action.height / 2, id: 2 }];
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: points });
+      points[0].x += 20;
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: points });
+      assert.equal(await phone.evaluate(() => window.RainGame.controls.joystick.x > 0 && window.RainGame.controls.keys.has('collect')), true);
+      await touch.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      assert.equal(await phone.evaluate(() => window.RainGame.controls.joystick.x === 0 && window.RainGame.controls.keys.size === 0), true);
+      if (width > height) assert.equal(await phone.locator('.score-stat > span').evaluate(el => getComputedStyle(el).fontSize), '0px');
       await phone.screenshot({ path: path.join(artifacts, `${name}.png`) });
       await phone.evaluate(() => { if (window.RainGame.state.current.mode === 'playing') window.RainGame.screens.pause(); });
       await phone.locator('[data-action="saves"]').click();
