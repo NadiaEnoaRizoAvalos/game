@@ -102,7 +102,7 @@ test('Lluvia obliga a secar nuevamente; el techo protege ropa almacenada', () =>
   const clothes = game.orders.goods(order);
   game.collection.completePickup(clothes[0]);
   game.collection.deposit();
-  s.elapsed = s.weatherProfile.delay + s.weatherProfile.stormAfter;
+  s.elapsed = s.daySeconds * .75;
   game.weather.update(5);
   assert.equal(clothes[0].wetness, 0);
   assert.ok(clothes[1].wetness > 0);

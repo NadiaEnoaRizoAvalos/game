@@ -7,7 +7,7 @@
   const Game = window.RainGame;
   /** Muestra el tablón de menú con el HTML recibido. */
   function showPanel(html) {
-    Game.dom.byId('panel').innerHTML = html;
+    Game.dom.byId('panel').innerHTML = `<div class="panel-scroll">${html}</div>`;
     Game.dom.byId('overlay').hidden = false;
   }
 
@@ -40,6 +40,14 @@
     Game.dom.byId('timer').textContent = gameState.rainStarted ? '☂' : Math.max(0, Math.ceil(Game.state.weather().delay - gameState.elapsed));
     Game.dom.byId('timer-unit').textContent = gameState.rainStarted ? '' : ' s';
     Game.dom.byId('weather-label').textContent = gameState.rainStarted ? gameState.rainIntensity >= .99 ? 'TORMENTA' : gameState.rainIntensity < .35 ? 'LLOVIZNA' : 'LLUVIA' : 'LLUVIA EN';
+    if (gameState.climate) {
+      const c = Game.climate.conditions();
+      const next = Game.climate.next();
+      Game.dom.byId('weather-label').textContent = c.name.toUpperCase();
+      Game.dom.byId('timer').textContent = next ? Math.max(0, Math.ceil(next.start - gameState.elapsed)) : c.temperature;
+      Game.dom.byId('timer-unit').textContent = next ? ' s' : ' °C';
+      Game.dom.byId('weather-veil').style.opacity = c.cloud * .32;
+    }
     Game.dom.byId('score').textContent = String(gameState.total + gameState.points).padStart(3, '0');
     Game.dom.byId('capacity').textContent = Game.collection.usedSpace();
     Game.dom.byId('capacity-bar').style.width = Game.collection.usedSpace() / Game.collection.capacity() * 100 + '%';
@@ -66,7 +74,7 @@
     if (action?.kind === 'hang') return `Acción: tender ${action.item.name} en este lugar libre.`;
     const garment = gameState.target;
     if (garment) {
-      if (garment.orderId) return `${garment.name} · Humedad ${Math.round(garment.wetness)}% · Limpieza ${Math.round(garment.cleanliness)}% · ${garment.size} espacios`;
+      if (garment.orderId) return `${garment.name} · Humedad ${Math.round(garment.wetness)}% · Limpieza ${Math.floor(garment.cleanliness)}% · ${garment.size} espacios`;
       return [
         `${garment.special ? '★ ' : ''}${garment.name}`,
         `${Game.collection.scoreFor(garment)} pts`,

@@ -8,6 +8,7 @@
   /** Avanza lluvia y humedad usando dt en segundos; solo la ropa guardada queda protegida. */
   function updateWeather(deltaSeconds) {
     const gameState = Game.state.current;
+    if (gameState.climate) { Game.climate.update(deltaSeconds); return; }
     if (gameState.elapsed >= Game.state.weather().delay) {
       const rainTime = gameState.elapsed - Game.state.weather().delay;
       if (!gameState.rainStarted) {

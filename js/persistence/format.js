@@ -3,7 +3,7 @@
   'use strict';
   const Game = window.RainGame;
   const FORMAT = 'antes-de-la-lluvia';
-  const VERSION = 2;
+  const VERSION = 3;
   const MAX_BYTES = 5 * 1024 * 1024;
   const fields = ['day', 'daySeconds', 'elapsed', 'points', 'saved', 'nextGarmentId',
     'basketCapacity', 'player', 'rainIntensity', 'rainStarted', 'stormAnnounced',
@@ -38,7 +38,7 @@
   function validate(envelope) {
     safeTree(envelope);
     check(object(envelope) && envelope.format === FORMAT, 'archivo de otro juego');
-    check([1, VERSION].includes(envelope.version), 'versión incompatible');
+    check([1, 2, VERSION].includes(envelope.version), 'versión incompatible');
     check(typeof envelope.savedAt === 'string' && Number.isFinite(Date.parse(envelope.savedAt)), 'fecha');
     const s = envelope.data;
     check(object(s), 'faltan datos');
@@ -55,7 +55,7 @@
     check(object(s.player), 'personaje');
     const bounds = Game.config.settings;
     check(number(s.player.x, bounds.minX, bounds.maxX) && number(s.player.y, bounds.minY, bounds.maxY) &&
-      Game.player.canStand(s.player.x, s.player.y), 'posición del personaje');
+      Game.player.canStand(s.player.x, s.player.y, envelope.version >= 2), 'posición del personaje');
     check(number(s.player.facingX, -1, 1) && number(s.player.facingY, -1, 1) &&
       typeof s.player.walking === 'boolean', 'orientación');
     check(number(s.rainIntensity, 0, 1), 'lluvia');
@@ -84,7 +84,7 @@
       check(!ids.has(p.id) && Number(p.id.slice(8)) < s.nextGarmentId, 'ID duplicado o fuera de secuencia');
       ids.add(p.id);
       check(Object.hasOwn(Game.config.garments, p.type), 'tipo de prenda');
-      check(number(p.slot, 0, 7, true) || (envelope.version === 2 && p.orderId && p.slot === null && p.status !== 'hanging'), 'lugar de la soga');
+      check(number(p.slot, 0, 7, true) || (envelope.version >= 2 && p.orderId && p.slot === null && p.status !== 'hanging'), 'lugar de la soga');
       check((envelope.version === 1 ? ['hanging', 'basket', 'saved'] : ['hanging', 'basket', 'saved', 'stored', 'delivered']).includes(p.status), 'ubicación de prenda');
       check(number(p.wetness, 0, 100), 'humedad');
       if (p.status === 'hanging') {
@@ -96,7 +96,8 @@
     }
     check(volume <= s.basketCapacity, 'canasto sobrecargado');
     check(saved === s.saved, 'contador de ropa guardada');
-    if (envelope.version === 2) Game.laundrySchema.validate(s, check, number, object);
+    if (envelope.version >= 2) Game.laundrySchema.validate(s, check, number, object);
+    if (envelope.version === 3) Game.climateSchema.validate(s, check, number, object);
     return envelope;
   }
 
@@ -105,6 +106,8 @@
     const data = {};
     for (const key of fields) data[key] = state[key];
     data.laundry = state.laundry;
+    data.climate = state.climate;
+    data.reputation = state.reputation;
     data.items = state.items.map(({ id, slot, type, wetness, status, orderId, cleanliness, washProgress }) => ({ id, slot, type, wetness, status,
       ...(orderId ? { orderId, cleanliness, washProgress } : {}) }));
     const envelope = { format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), data };
@@ -123,8 +126,14 @@
     state.basket = state.items.filter(p => p.status === 'basket');
     state.player.walking = false;
     state.mode = 'paused';
-    if (envelope.version === 2) state.laundry = data.laundry;
+    if (envelope.version >= 2) state.laundry = data.laundry;
     else Game.orders.initialize(state);
+    if (envelope.version === 3) { state.climate = data.climate; state.reputation = data.reputation; }
+    else { Game.climate.initialize(state); Game.reputation.initialize(state); }
+    if (envelope.version === 1 && !Game.player.canStand(state.player.x, state.player.y, true)) {
+      state.player.x = Game.config.laundry.station.x;
+      state.player.y = Game.config.laundry.station.y + 12;
+    }
     return state;
   }
 

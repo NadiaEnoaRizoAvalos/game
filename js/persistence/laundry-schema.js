@@ -67,7 +67,7 @@
       check(['stored', 'basket', 'hanging', 'delivered'].includes(p.status), 'ubicación de pedido');
       check(number(p.cleanliness, 0, 100) && number(p.washProgress, 0, cfg.wash.seconds + Game.config.garments[p.type].size), 'lavado');
       check(p.washProgress === 0 || (['stored', 'basket'].includes(p.status) && p.cleanliness < order.requiredQuality), 'lavado contradictorio');
-      if (p.status === 'hanging') check(p.cleanliness >= order.requiredQuality, 'prenda sucia en soga');
+      // El polvo puede ensuciar una prenda ya tendida: se conserva para volver a lavarla.
     }
   }
   Game.laundrySchema = { validate };

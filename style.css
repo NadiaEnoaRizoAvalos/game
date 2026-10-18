@@ -305,6 +305,14 @@ canvas {
   background:radial-gradient(circle at 7% 10%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 93% 10%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 7% 90%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 93% 90%,#605647 0 3px,#d7b37a 4px,transparent 5px)
 }
 
+/* El contenido largo se desplaza dentro del tablón; la madera permanece fija. */
+.panel-scroll {
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  touch-action:pan-y
+}
+
 .eyebrow {
   font-size:10px;
   letter-spacing:2px;
@@ -1537,5 +1545,13 @@ html {
     padding:10px 13px
   }
 
+}
+
+
+/* Mantener el fondo original fuera del área desplazable en todas las orientaciones. */
+.panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden
 }
 

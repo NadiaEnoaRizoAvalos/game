@@ -91,6 +91,7 @@
 ${Game.state.current.campaign ? '<button class="secondary" data-action="saves">PARTIDAS Y RESPALDOS</button>' : ''}
 ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
 ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">PEDIDOS E INSUMOS</button>' : ''}
+${Game.state.current.climate ? '<button class="secondary" data-action="forecast">PRONÓSTICO Y REPUTACIÓN</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -130,6 +131,7 @@ ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">P
 <p>Hoy: ${s.points - s.dayStartPoints} puntos · ${s.saved - s.dayStartSaved} prendas guardadas.<br>
 Total: ${s.points} puntos · ${s.items.filter(p => !['saved', 'delivered'].includes(p.status)).length} prendas pendientes.</p>
 ${s.laundry ? `<p>Saldo: $${s.resources.money} · Variación del día: $${s.resources.money - s.laundry.dayStartMoney}<br>Pedidos pendientes: ${s.orders.filter(o => o.state === 'accepted').length}</p>` : ''}
+${s.reputation ? `<p>Reputación: ${Math.round(s.reputation.score)}/100 · Quejas graves: ${s.reputation.complaints.length}</p>` : ''}
 <div class="panel-actions"><button class="primary" data-action="nextDay">DÍA SIGUIENTE →</button>
 <button class="secondary" data-action="resume">SEGUIR EN EL PATIO</button></div>`);
     Game.hud.update();
@@ -185,6 +187,7 @@ La ropa familiar que ya estaba colgada conserva los puntos del juego original; r
       if (Game.saves.busy) return;
       Game.saveMenu.action(a);
       Game.ordersMenu.action(a);
+      Game.climateMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

@@ -41,6 +41,8 @@
     const state = create();
     replenish(state);
     Game.orders.initialize(state);
+    Game.climate.initialize(state);
+    Game.reputation.initialize(state);
     return state;
   }
 
@@ -49,6 +51,7 @@
     const s = Game.state.current;
     if (!s.campaign || s.dayEnded) return false;
     s.dayEnded = true;
+    Game.reputation.closeDay(s);
     Game.screens.daySummary();
     Game.saves?.auto('fin del día');
     return true;
@@ -68,6 +71,8 @@
     Game.audio.stop();
     if (s.laundry) {
       s.laundry.dayStartMoney = s.resources.money;
+      Game.climate.newDay(s);
+      Game.reputation.newDay(s);
       Game.orders.generate(s);
     } else replenish(s);
     Game.screens.resume();

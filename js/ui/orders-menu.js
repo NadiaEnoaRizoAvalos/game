@@ -17,7 +17,7 @@
       body = `<h2>${escape(client.name)}</h2><p>${escape(client.story)}</p>
 <p>${order.count} × ${escape(Game.config.garments[order.type].name)} · $${order.price} · Entrega: día ${order.dueDay}${order.urgent ? ' · URGENTE' : ''}<br>
 ${labels[stage]} · Limpieza requerida: ${order.requiredQuality}%${s.day > order.dueDay && order.state === 'accepted' ? ' · ATRASADO' : ''}</p>
-${items.length ? `<p>${items.map(p => `${escape(p.name)}: ${{ stored: 'en casa', basket: 'en canasto', hanging: 'en soga', delivered: 'entregada' }[p.status]} · limpieza ${Math.round(p.cleanliness)}% · humedad ${Math.round(p.wetness)}%${p.washProgress ? ' · lavado iniciado' : ''}`).join('<br>')}</p>` : ''}
+${items.length ? `<p>${items.map(p => `${escape(p.name)}: ${{ stored: 'en casa', basket: 'en canasto', hanging: 'en soga', delivered: 'entregada' }[p.status]} · limpieza ${Math.floor(p.cleanliness)}% · humedad ${Math.round(p.wetness)}%${p.washProgress ? ' · lavado iniciado' : ''}`).join('<br>')}</p>` : ''}
 <div class="panel-actions">
 ${order.state === 'available' ? `<button class="primary" data-action="order:accept:${order.id}">ACEPTAR PEDIDO</button>` : ''}
 ${order.state === 'accepted' ? `<button class="secondary" data-action="order:load:${order.id}">CARGAR PRENDAS EN CASA</button><button class="primary" data-action="order:deliver:${order.id}">ENTREGAR PEDIDO</button>` : ''}
@@ -26,13 +26,13 @@ ${order.state === 'accepted' ? `<button class="secondary" data-action="order:loa
       const visible = s.orders.filter(o => ['available', 'accepted'].includes(o.state));
       body = `<h2>Encargos del barrio.</h2>
 <p>Saldo: $${s.resources.money} · Agua: ${s.resources.water} · Jabón: ${s.resources.soap}<br>
-${s.orders.filter(o => o.state === 'accepted').length}/3 pedidos activos · Canasto ${Game.collection.usedSpace()}/${Game.collection.capacity()}<br>
+${s.orders.filter(o => o.state === 'accepted').length}/3 pedidos activos · Canasto ${Game.collection.usedSpace()}/${Game.collection.capacity()}${s.reputation ? ` · Reputación ${Math.round(s.reputation.score)}/100` : ''}<br>
 ${Game.orders.atDoor() ? 'Estás en casa: podés cargar o entregar.' : 'Para cargar y entregar, acercate a la puerta de la casa.'}</p>
 <div class="panel-actions">${visible.map(o => `<button class="secondary" data-action="order:view:${o.id}">${escape(Game.orders.customer(o.clientId).name)} · ${labels[Game.orders.stage(o)]} · $${o.price}</button>`).join('')}
 <button class="secondary" data-action="order:supplies">INSUMOS $12 · 12 AGUA + 6 JABÓN</button>
 <button class="secondary" data-action="order:unload">DESCARGAR CANASTO EN CASA</button></div>
 <p class="tiny">Se lava junto a la casa, se tiende en lugares libres y se entrega limpio y seco.<br>
-Entregados: ${s.orders.filter(o => o.state === 'delivered').length}. Tres entregas convierten al cliente en habitual (+$5 en próximos pedidos).</p>`;
+Entregados: ${s.orders.filter(o => o.state === 'delivered').length}. Tres entregas puntuales y confianza de 60 convierten al cliente en habitual (+$5).</p>`;
     }
     Game.hud.showPanel(`<div class="eyebrow">LA LAVANDERÍA DE MARÍA CARMEN</div>${body}
 <p id="order-message" role="status"></p><div class="panel-actions"><button class="primary" data-action="resume">VOLVER AL PATIO →</button></div>`);

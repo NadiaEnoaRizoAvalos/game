@@ -139,7 +139,7 @@
     }
     context.globalAlpha = 1;
     // Clouds are moving shadows seen on the ground, rather than a side-view sky.
-    const dark = Game.utils.clamp(gameState.elapsed / (Game.state.weather().delay + 14), 0, 1);
+    const dark = gameState.climate ? Game.climate.conditions().cloud : Game.utils.clamp(gameState.elapsed / (Game.state.weather().delay + 14), 0, 1);
     context.fillStyle = `rgba(45,66,84,${dark * .32})`;
     context.fillRect(0, 0, w, h);
     context.globalAlpha = .035 + dark * .06;
@@ -148,6 +148,13 @@
     }
     context.globalAlpha = 1;
     Game.renderer.drawRain();
+    if (gameState.climate && Game.climate.conditions().dust) {
+      context.globalAlpha = .25;
+      for (let i = 0; i < 30; i++) {
+        rect((i * 71 + Game.runtime.clock * 80) % w, (i * 113) % h, 5, 2, '#b08e5e');
+      }
+      context.globalAlpha = 1;
+    }
     if (gameState.flash > 0) {
       context.fillStyle = `rgba(255,255,228,${gameState.flash})`;
       context.fillRect(0, 0, w, h);

@@ -26,15 +26,20 @@
     for (const order of state.orders) {
       if (order.state === 'available' && order.offeredDay < state.day) order.state = 'expired';
     }
-    for (let i = 0; i < 3; i++) {
+    let generated = 0;
+    const demand = Game.reputation?.demand(state) ?? 3;
+    for (let i = 0; i < cfg().clients.length && generated < demand; i++) {
       if (state.orders.length >= 10000) break;
       const client = cfg().clients[(state.day - 1 + i) % cfg().clients.length];
-      const habitual = state.laundry.clients.find(c => c.id === client.id).completed >= 3;
+      if (state.reputation && !Game.reputation.available(client.id, state)) continue;
+      const history = state.laundry.clients.find(c => c.id === client.id);
+      const habitual = state.reputation ? history.onTime >= 3 && history.trust >= 60 : history.completed >= 3;
       state.orders.push({ id: `order-${state.laundry.nextOrderId++}`, clientId: client.id,
         offeredDay: state.day, dueDay: state.day + client.due, type: client.type,
         count: client.count, price: client.price + (habitual ? 5 : 0),
         requiredQuality: client.quality, urgent: client.due === 0,
         state: 'available', acceptedDay: null, deliveredDay: null, paid: 0 });
+      generated++;
     }
     state.laundry.generatedDay = state.day;
   }
@@ -53,6 +58,7 @@
     const s = current();
     const order = s.orders.find(o => o.id === id);
     if (!order || order.state !== 'available' || order.offeredDay !== s.day) return 'Este pedido ya no está disponible.';
+    if (s.reputation && !Game.reputation.available(order.clientId, s)) return 'Este cliente suspendió los encargos temporalmente.';
     const active = s.orders.filter(o => o.state === 'accepted');
     if (active.length >= cfg().maxActiveOrders || active.reduce((n, o) => n + o.count, 0) + order.count > cfg().maxPendingGarments) {
       return 'Terminá algún pedido: el cupo es de 3 pedidos y 12 prendas pendientes.';
@@ -92,6 +98,7 @@
     const client = s.laundry.clients.find(c => c.id === order.clientId);
     client.completed++;
     if (s.day <= order.dueDay) client.onTime++;
+    Game.reputation.review(s, order);
     Game.audio.play('deposit');
     Game.saves?.auto('entrega');
     return null;

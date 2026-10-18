@@ -122,7 +122,9 @@
     if (!s.laundry) return;
     for (const p of s.items) {
       if (!p.orderId || p.status !== 'hanging' || s.rainIntensity > 0) continue;
-      const rate = cfg().fabrics[p.type] * (1 + Game.state.weather().wind * .08);
+      const c = Game.climate.conditions();
+      const environment = c ? c.temperature / 28 * (1 - c.humidity / 100 * .7) * (.4 + .6 * c.sun) * (Game.climate.shelter(p) ? .65 : 1) : 1;
+      const rate = cfg().fabrics[p.type] * (1 + Game.state.weather().wind * .08) * environment;
       p.wetness = Math.max(0, p.wetness - rate * dt);
     }
   }
