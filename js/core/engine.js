@@ -32,10 +32,13 @@
     Game.effects.updateAnimations(deltaSeconds);
     const dx = Number(Game.controls.keys.has('right')) - Number(Game.controls.keys.has('left')) || Game.controls.joystick.x;
     const dy = Number(Game.controls.keys.has('down')) - Number(Game.controls.keys.has('up')) || Game.controls.joystick.y;
-    Game.player.move(dx, dy, deltaSeconds);
-    Game.collection.update(deltaSeconds);
+    if (!Game.state.current.family?.mate) {
+      Game.player.move(dx, dy, deltaSeconds);
+      Game.collection.update(deltaSeconds);
+    } else Game.state.current.player.walking = false;
     Game.weather.update(deltaSeconds);
     Game.laundry.update(deltaSeconds);
+    Game.family.update(deltaSeconds);
     Game.effects.updateParticles(deltaSeconds);
     if (Game.state.current.campaign) {
       if (Game.state.current.elapsed >= Game.state.current.daySeconds && !Game.state.current.dayEnded) {

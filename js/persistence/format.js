@@ -3,7 +3,7 @@
   'use strict';
   const Game = window.RainGame;
   const FORMAT = 'antes-de-la-lluvia';
-  const VERSION = 3;
+  const VERSION = 4;
   const MAX_BYTES = 5 * 1024 * 1024;
   const fields = ['day', 'daySeconds', 'elapsed', 'points', 'saved', 'nextGarmentId',
     'basketCapacity', 'player', 'rainIntensity', 'rainStarted', 'stormAnnounced',
@@ -38,7 +38,7 @@
   function validate(envelope) {
     safeTree(envelope);
     check(object(envelope) && envelope.format === FORMAT, 'archivo de otro juego');
-    check([1, 2, VERSION].includes(envelope.version), 'versión incompatible');
+    check([1, 2, 3, VERSION].includes(envelope.version), 'versión incompatible');
     check(typeof envelope.savedAt === 'string' && Number.isFinite(Date.parse(envelope.savedAt)), 'fecha');
     const s = envelope.data;
     check(object(s), 'faltan datos');
@@ -97,7 +97,8 @@
     check(volume <= s.basketCapacity, 'canasto sobrecargado');
     check(saved === s.saved, 'contador de ropa guardada');
     if (envelope.version >= 2) Game.laundrySchema.validate(s, check, number, object);
-    if (envelope.version === 3) Game.climateSchema.validate(s, check, number, object);
+    if (envelope.version >= 3) Game.climateSchema.validate(s, check, number, object);
+    if (envelope.version >= 4) Game.familySchema.validate(s, check, number, object);
     return envelope;
   }
 
@@ -108,6 +109,7 @@
     data.laundry = state.laundry;
     data.climate = state.climate;
     data.reputation = state.reputation;
+    data.family = state.family;
     data.items = state.items.map(({ id, slot, type, wetness, status, orderId, cleanliness, washProgress }) => ({ id, slot, type, wetness, status,
       ...(orderId ? { orderId, cleanliness, washProgress } : {}) }));
     const envelope = { format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), data };
@@ -128,8 +130,10 @@
     state.mode = 'paused';
     if (envelope.version >= 2) state.laundry = data.laundry;
     else Game.orders.initialize(state);
-    if (envelope.version === 3) { state.climate = data.climate; state.reputation = data.reputation; }
+    if (envelope.version >= 3) { state.climate = data.climate; state.reputation = data.reputation; }
     else { Game.climate.initialize(state); Game.reputation.initialize(state); }
+    if (envelope.version >= 4) state.family = data.family;
+    else Game.family.initialize(state);
     if (envelope.version === 1 && !Game.player.canStand(state.player.x, state.player.y, true)) {
       state.player.x = Game.config.laundry.station.x;
       state.player.y = Game.config.laundry.station.y + 12;

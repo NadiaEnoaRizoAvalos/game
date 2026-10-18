@@ -43,6 +43,7 @@
     Game.orders.initialize(state);
     Game.climate.initialize(state);
     Game.reputation.initialize(state);
+    Game.family.initialize(state);
     return state;
   }
 
@@ -51,6 +52,7 @@
     const s = Game.state.current;
     if (!s.campaign || s.dayEnded) return false;
     s.dayEnded = true;
+    if (s.family) s.family.mate = 0;
     Game.reputation.closeDay(s);
     Game.screens.daySummary();
     Game.saves?.auto('fin del día');
@@ -74,6 +76,7 @@
       Game.climate.newDay(s);
       Game.reputation.newDay(s);
       Game.orders.generate(s);
+      if (s.family) Game.family.newDay(s);
     } else replenish(s);
     Game.screens.resume();
     Game.saves?.auto('nuevo día');

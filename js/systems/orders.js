@@ -89,12 +89,11 @@
     if (stage(order) !== 'ready') return 'Guardá todas las prendas limpias y completamente secas antes de entregar.';
     const paymentId = `delivery-${order.id}`;
     if (s.laundry.ledger.some(e => e.id === paymentId)) return 'Este pedido ya fue cobrado.';
+    if (!Game.economy.transact(paymentId, order.price, 'delivery', order.id)) return 'No se pudo registrar el cobro.';
     order.state = 'delivered';
     order.deliveredDay = s.day;
     order.paid = order.price;
     for (const p of goods(order)) p.status = 'delivered';
-    s.resources.money += order.price;
-    s.laundry.ledger.push({ id: paymentId, day: s.day, amount: order.price, kind: 'delivery', orderId: order.id });
     const client = s.laundry.clients.find(c => c.id === order.clientId);
     client.completed++;
     if (s.day <= order.dueDay) client.onTime++;
@@ -108,11 +107,9 @@
     const s = current();
     const pack = cfg().supplies;
     if (s.resources.money < pack.price) return 'No alcanza el saldo para comprar insumos.';
-    s.resources.money -= pack.price;
+    if (!Game.economy.transact(`supplies-${s.laundry.ledger.length}`, -pack.price, 'supplies')) return 'No se pudo registrar la compra.';
     s.resources.water += pack.water;
     s.resources.soap += pack.soap;
-    s.laundry.ledger.push({ id: `supplies-${s.laundry.ledger.length}`, day: s.day,
-      amount: -pack.price, kind: 'supplies', orderId: null });
     Game.saves?.auto('compra de insumos');
     return null;
   }

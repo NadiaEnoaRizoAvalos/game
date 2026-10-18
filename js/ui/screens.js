@@ -92,6 +92,7 @@ ${Game.state.current.campaign ? '<button class="secondary" data-action="saves">P
 ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
 ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">PEDIDOS E INSUMOS</button>' : ''}
 ${Game.state.current.climate ? '<button class="secondary" data-action="forecast">PRONÓSTICO Y REPUTACIÓN</button>' : ''}
+${Game.state.current.family ? '<button class="secondary" data-action="family">FAMILIA Y ECONOMÍA</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -132,6 +133,7 @@ ${Game.state.current.climate ? '<button class="secondary" data-action="forecast"
 Total: ${s.points} puntos · ${s.items.filter(p => !['saved', 'delivered'].includes(p.status)).length} prendas pendientes.</p>
 ${s.laundry ? `<p>Saldo: $${s.resources.money} · Variación del día: $${s.resources.money - s.laundry.dayStartMoney}<br>Pedidos pendientes: ${s.orders.filter(o => o.state === 'accepted').length}</p>` : ''}
 ${s.reputation ? `<p>Reputación: ${Math.round(s.reputation.score)}/100 · Quejas graves: ${s.reputation.complaints.length}</p>` : ''}
+${s.family ? `<p>Ingresos de hoy: $${Game.economy.summary(s.day).income} · Gastos: $${Game.economy.summary(s.day).expenses}<br>Pedidos entregados hoy: ${s.orders.filter(o => o.deliveredDay === s.day).length}<br>Mañana: ${Game.climate.plan(s.day + 1, s.daySeconds).map(p => Game.config.climate[p.kind].name).join(' → ')}</p>` : ''}
 <div class="panel-actions"><button class="primary" data-action="nextDay">DÍA SIGUIENTE →</button>
 <button class="secondary" data-action="resume">SEGUIR EN EL PATIO</button></div>`);
     Game.hud.update();
@@ -188,6 +190,7 @@ La ropa familiar que ya estaba colgada conserva los puntos del juego original; r
       Game.saveMenu.action(a);
       Game.ordersMenu.action(a);
       Game.climateMenu.action(a);
+      Game.familyMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

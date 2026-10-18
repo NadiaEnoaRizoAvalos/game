@@ -83,13 +83,14 @@
     const player = Game.state.current.player;
     const x = Math.round(player.x);
     const y = Math.round(player.y);
+    const seated = !!Game.state.current.family?.mate;
     const step = player.walking ? Math.sin(Game.runtime.clock * 17) * 4 : 0;
     const reach = Game.state.current.progress > 0 || Game.state.current.collectPulse > 0;
     const reachWave = reach ? Math.sin(Game.runtime.clock * 15) * 5 : 0;
     const storing = Game.state.current.depositAnim && Math.hypot(player.x - Game.state.current.depositAnim.x, player.y - Game.state.current.depositAnim.y) < 12;
     const bend = storing ? Math.sin(Game.state.current.depositAnim.time / Game.state.current.depositAnim.duration * Math.PI) * 6 : 0;
     context.save();
-    context.translate(x, y + bend);
+    context.translate(x, y + bend + (seated ? 8 : 0));
     context.scale(.72, .72);
     context.rotate(storing ? Math.sin(Game.state.current.depositAnim.time / Game.state.current.depositAnim.duration * Math.PI) * .12 : 0);
     if (player.facingX < 0) {
@@ -132,7 +133,7 @@
       rect(0, -55, 5, 2, '#b87769');
       line(-6, -62, 8, -62, '#8b876f', 1);
     }
-    Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / Game.collection.capacity());
+    if (!seated) Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / Game.collection.capacity());
     context.restore();
   }
 

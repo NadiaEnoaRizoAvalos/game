@@ -124,7 +124,9 @@
       draw: () => Game.world.tree(t.x, t.y, t.z)
     }))];
     if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
+    if (gameState.family) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
+    Game.familyDrawing.mate();
     if (target) {
       const x = target.x;
       const y = target.y + 27;

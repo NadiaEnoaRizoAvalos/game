@@ -70,7 +70,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const exported = path.join(artifacts, 'partida-exportada.json');
     await download.saveAs(exported);
     const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
-    assert.equal(imported.version, 3);
+    assert.equal(imported.version, 4);
     imported.data.resources.money = 456;
     const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
     page.once('dialog', dialog => dialog.dismiss());
@@ -169,6 +169,25 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     await page.locator('[data-action="reputation"]').click();
     assert.match(await page.locator('#panel').textContent(), /63\/100/);
     await page.screenshot({ path: path.join(artifacts, 'reputation-desktop.png'), fullPage: true });
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => window.RainGame.screens.pause());
+    await page.locator('[data-action="family"]').click();
+    await page.locator('[data-action^="family:pay:"]').first().click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 60);
+    await page.locator('[data-action="family:talk:jaqui"]').click();
+    await page.screenshot({ path: path.join(artifacts, 'familia-desktop.png'), fullPage: true });
+    await page.locator('[data-action="family:mate"]').click();
+    await page.waitForFunction(() => window.RainGame.state.current.family.mate > 0);
+    await page.screenshot({ path: path.join(artifacts, 'mates-desktop.png'), fullPage: true });
+    await page.waitForFunction(() => window.RainGame.state.current.dayEnded);
+    await page.locator('[data-action="nextDay"]').waitFor();
+    await page.evaluate(() => window.RainGame.saves.save());
+    await page.reload();
+    await page.waitForFunction(() => !window.RainGame.saves.busy);
+    await page.locator('[data-action="continue"]').click();
+    await page.waitForFunction(() => window.RainGame.saves.active);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.family.events[0].paid), true);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.family.restedDay), 1);
     // Capturas y controles por Pointer Events en orientaciones de celular.
     const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const phone = await openPage(mobile);
@@ -212,6 +231,12 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       await phone.screenshot({ path: path.join(artifacts, `${name}-reputation.png`) });
       await phone.locator('[data-action="resume"]').click();
       // Todos los nombres de clima deben mantener accesible la pausa en el HUD.
+      await phone.evaluate(() => window.RainGame.screens.pause());
+      await phone.locator('[data-action="family"]').click();
+      await phone.locator('[data-action="family:talk:jaqui"]').click();
+      await phone.locator('[data-action="resume"]').scrollIntoViewIfNeeded();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-familia.png`) });
+      await phone.locator('[data-action="resume"]').click();
       for (const kind of ['heat', 'wind', 'storm']) {
         await phone.evaluate(kind => { const g = window.RainGame; g.state.current.climate.segments[0].kind = kind; g.hud.update(); }, kind);
         const weatherPause = await phone.locator('#pause').boundingBox();
