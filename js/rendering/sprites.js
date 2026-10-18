@@ -17,14 +17,14 @@
   function drawGarment(garment, pose = null) {
     const picking = !pose && Game.state.current.target === garment && Game.state.current.progress > 0;
     const q = picking ? Game.utils.clamp(Game.state.current.progress / garment.time, 0, 1) : 0;
-    const sway = Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.current.level.wind * (1 + Game.state.current.rainIntensity * .6);
+    const sway = Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.weather().wind * (1 + Game.state.current.rainIntensity * .6);
     const x = pose ? pose.x : garment.x + sway;
     const y = pose ? pose.y : garment.y - 52 + Math.sin(q * Math.PI) * 4;
     context.save();
     context.translate(x, y);
     const scale = pose ? pose.scale : .72;
     context.scale(scale, scale);
-    context.rotate(pose ? pose.angle : Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.current.level.wind * .009 + (picking ? Math.sin(q * Math.PI * 6) * .06 : 0));
+    context.rotate(pose ? pose.angle : Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.weather().wind * .009 + (picking ? Math.sin(q * Math.PI * 6) * .06 : 0));
     const c = wetColor(garment.color, garment.wetness);
     const clothRect = (x, y, w, h, color) => rect(x, y, w, h, wetColor(color, garment.wetness));
     const clothLine = (x, y, x2, y2, color, width) => line(x, y, x2, y2, wetColor(color, garment.wetness), width);
@@ -132,7 +132,7 @@
       rect(0, -55, 5, 2, '#b87769');
       line(-6, -62, 8, -62, '#8b876f', 1);
     }
-    Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / 6);
+    Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / Game.collection.capacity());
     context.restore();
   }
 

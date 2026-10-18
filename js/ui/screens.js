@@ -7,6 +7,7 @@
   const Game = window.RainGame;
   /** Inicia o reintenta un nivel; limpia controles y audio pendientes. */
   function loadLevel(index, total = 0) {
+    Game.engine.resetTime();
     Game.controls.clearInputs();
     Game.audio.stop();
     Game.state.current = Game.state.createLevel(index, total);
@@ -20,18 +21,21 @@
 
   /** Construye la escena inicial y muestra el menú principal. */
   function menu() {
+    Game.engine.resetTime();
     Game.audio.stop();
     Game.controls.clearInputs();
-    Game.state.current = Game.state.createLevel(0);
+    if (!Game.state.current?.campaign) Game.state.current = Game.calendar.newGame();
+    Game.state.current.mode = 'menu';
     Game.hud.showPanel(`<div class="eyebrow">EL PATIO TE ESPERA</div>
 <h2>Se viene la lluvia.</h2>
 <p>Recogé la ropa, llená el canasto y volvé a casa.<br>Algunas prendas valen más. ¡Elegí bien!</p>
 <div class="panel-actions">
-<button class="primary" data-action="start">JUGAR <span>→</span>
+<button class="primary" data-action="start">NUEVA PARTIDA <span>→</span>
 </button>
 <button class="secondary" data-action="help">INSTRUCCIONES</button>
+<button class="secondary" data-action="continue">CONTINUAR PARTIDA</button>
 </div>
-<p class="tiny">TRES TORMENTAS · UN CANASTO · MUCHAS DECISIONES</p>`);
+<p class="tiny">DÍAS EN EL PATIO · UN CANASTO · MUCHAS DECISIONES</p>`);
     Game.dom.byId('pause').disabled = true;
     Game.hud.update();
   }
@@ -69,6 +73,8 @@
   function pause() {
     if (Game.state.current.mode === 'playing') {
       Game.state.current.mode = 'paused';
+      Game.engine.resetTime();
+      Game.saves?.auto('pausa');
       Game.controls.clearInputs();
       Game.audio.weather(0);
       Game.dom.byId('pause').textContent = '▶';
@@ -78,6 +84,7 @@
 <div class="panel-actions">
 <button class="primary" data-action="resume">SEGUIR JUGANDO →</button>
 <button class="secondary" data-action="menu">VOLVER AL INICIO</button>
+${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -86,16 +93,44 @@
 
   /** Reanuda la partida y oculta el tablón de pausa. */
   function resume() {
+    Game.engine.resetTime();
     Game.state.current.mode = 'playing';
     Game.dom.byId('overlay').hidden = true;
     Game.dom.byId('pause').textContent = 'Ⅱ';
     Game.controls.clearInputs();
+    Game.dom.byId('pause').disabled = false;
+  }
+
+  function startCampaign() {
+    Game.state.current = Game.calendar.newGame();
+    Game.runtime.clock = 0;
+    Game.audio.stop();
+    Game.screens.resume();
+    Game.hud.update();
+    Game.saves?.auto('nueva partida');
+  }
+
+  /** Resumen sin reiniciar el mundo; seguir jugando permite recoger pendientes. */
+  function daySummary() {
+    const s = Game.state.current;
+    Game.engine.resetTime();
+    Game.controls.clearInputs();
+    Game.audio.stop();
+    s.mode = 'paused';
+    Game.dom.byId('pause').textContent = '▶';
+    Game.hud.showPanel(`<div class="eyebrow">DÍA ${s.day}</div>
+<h2>Un respiro en casa.</h2>
+<p>Hoy: ${s.points - s.dayStartPoints} puntos · ${s.saved - s.dayStartSaved} prendas guardadas.<br>
+Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length} prendas pendientes.</p>
+<div class="panel-actions"><button class="primary" data-action="nextDay">DÍA SIGUIENTE →</button>
+<button class="secondary" data-action="resume">SEGUIR EN EL PATIO</button></div>`);
   }
 
   /** Muestra instrucciones y recuerda si debe volver a una partida activa. */
   function help() {
     Game.runtime.helpWasPlaying = Game.state.current.mode === 'playing';
     if (Game.runtime.helpWasPlaying) {
+      Game.engine.resetTime();
       Game.state.current.mode = 'paused';
       Game.audio.weather(0);
       Game.controls.clearInputs();
@@ -130,8 +165,12 @@
         return;
       }
       Game.audio.init();
-      if (a === 'start') {
-        Game.screens.loadLevel(0);
+      if (a === 'start') Game.screens.startCampaign();
+      if (a === 'continue') Game.screens.resume();
+      if (a === 'nextDay') Game.calendar.advanceDay();
+      if (a === 'endDay') {
+        if (Game.state.current.dayEnded) Game.screens.daySummary();
+        else Game.calendar.endDay();
       }
       if (a === 'retry') {
         Game.screens.loadLevel(Game.state.current.index, Game.state.current.total);
@@ -163,6 +202,7 @@
     });
   }
   Game.screens = {
+    startCampaign, daySummary,
     loadLevel: loadLevel,
     menu: menu,
     finish: finish,

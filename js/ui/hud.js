@@ -32,15 +32,17 @@
   /** Actualiza tiempo, puntos, canasto y mensaje contextual. */
   function updateHUD() {
     const gameState = Game.state.current;
-    Game.dom.byId('weather-veil').style.opacity = Game.utils.clamp(gameState.elapsed / (gameState.level.delay + 14), 0, 1) * .32;
+    Game.dom.byId('weather-veil').style.opacity = Game.utils.clamp(gameState.elapsed / (Game.state.weather().delay + 14), 0, 1) * .32;
     Game.dom.byId('level-label').textContent = `NIVEL 0${gameState.index + 1} / 03`;
-    Game.dom.byId('level-name').textContent = gameState.level.name;
-    Game.dom.byId('timer').textContent = gameState.rainStarted ? '☂' : Math.max(0, Math.ceil(gameState.level.delay - gameState.elapsed));
+    Game.dom.byId('level-name').textContent = gameState.campaign ? Game.calendar.phase(gameState) + ' ' + Game.calendar.time(gameState) : Game.state.weather().name;
+    if (gameState.campaign) Game.dom.byId('level-label').textContent = `DÍA ${gameState.day}`;
+    Game.dom.byId('capacity-max').textContent = Game.collection.capacity();
+    Game.dom.byId('timer').textContent = gameState.rainStarted ? '☂' : Math.max(0, Math.ceil(Game.state.weather().delay - gameState.elapsed));
     Game.dom.byId('timer-unit').textContent = gameState.rainStarted ? '' : ' s';
     Game.dom.byId('weather-label').textContent = gameState.rainStarted ? gameState.rainIntensity >= .99 ? 'TORMENTA' : gameState.rainIntensity < .35 ? 'LLOVIZNA' : 'LLUVIA' : 'LLUVIA EN';
     Game.dom.byId('score').textContent = String(gameState.total + gameState.points).padStart(3, '0');
     Game.dom.byId('capacity').textContent = Game.collection.usedSpace();
-    Game.dom.byId('capacity-bar').style.width = Game.collection.usedSpace() / Game.config.settings.basketCapacity * 100 + '%';
+    Game.dom.byId('capacity-bar').style.width = Game.collection.usedSpace() / Game.collection.capacity() * 100 + '%';
     Game.dom.byId('hint').textContent = contextualHint(gameState);
   }
 

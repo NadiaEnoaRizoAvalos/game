@@ -5,6 +5,7 @@
   'use strict';
 
   const Game = window.RainGame;
+  function capacity() { return Game.state.current.basketCapacity ?? Game.config.settings.basketCapacity; }
   /** Suma los espacios ocupados por las prendas del canasto. */
   function usedSpace() {
     return Game.state.current.basket.reduce((s, p) => s + p.size, 0);
@@ -55,10 +56,13 @@
     Game.audio.play('deposit');
     Game.effects.burst(Game.config.settings.door.x, Game.config.settings.door.y - 20, '#f0d486', 14);
     Game.hud.toast(`¡A salvo! +${points} puntos guardados`);
+    Game.saves?.auto('descarga');
   }
 
   /** Retira la prenda de la soga e inicia su viaje animado al canasto. */
   function completePickup(target) {
+    if (!Game.state.current.items.includes(target) || target.status !== 'hanging' ||
+        usedSpace() + target.size > capacity()) return;
     target.status = 'basket';
     Game.state.current.basket.push(target);
     Game.state.current.flights.push({
@@ -75,7 +79,8 @@
     Game.audio.play('collect');
     Game.state.current.progress = 0;
     Game.state.current.target = null;
-    if (Game.collection.usedSpace() >= Game.config.settings.basketCapacity) {
+    Game.saves?.auto('recogida');
+    if (Game.collection.usedSpace() >= capacity()) {
       Game.audio.play('full');
       Game.hud.toast('Canasto lleno. ¡Volvé a la puerta!');
     }
@@ -96,7 +101,7 @@
       gameState.progress = 0;
       return;
     }
-    if (Game.collection.usedSpace() + target.size > Game.config.settings.basketCapacity) {
+    if (Game.collection.usedSpace() + target.size > capacity()) {
       gameState.progress = 0;
       if (Game.runtime.toastTime <= 0) {
         Game.hud.toast('No hay espacio para esta prenda. Descargá en casa.');
@@ -109,6 +114,7 @@
     }
   }
   Game.collection = {
+    capacity,
     usedSpace: usedSpace,
     scoreFor: valueOf,
     nearest: nearest,

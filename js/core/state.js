@@ -59,6 +59,7 @@
   }
   Game.state = {
     current: null,
+    weather: () => Game.state.current.weatherProfile || Game.state.current.level,
     garmentPosition: garmentPosition,
     createLevel: makeLevel
   };
