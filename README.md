@@ -82,7 +82,26 @@ python -m http.server 8000
 
 Después abrí `http://localhost:8000` en el navegador. También podés abrir `index.html` directamente.
 
-## Qué aprendí
+## Desarrollo de la versión 2.0
+
+La evolución hacia **La lavandería de María Carmen** se prepara en la rama
+`feature/lavanderia-maria-carmen-v2`. La Fase 0 solamente agrega documentación:
+el juego, su estética y sus controles conservan el comportamiento original.
+
+Consultá el [diagnóstico y plan por fases](docs/FASE_0_DIAGNOSTICO.md).
+La Fase 1 requiere aprobación antes de comenzar. Todavía no hay guardado de
+partidas, IndexedDB, exportación ni importación; recargar reinicia el juego.
+
+Para ejecutar las pruebas existentes con Node.js:
+
+```bash
+node --test tests/game.test.cjs
+```
+
+Las pruebas usan un DOM simulado: no sustituyen la revisión visual, de sonido
+y de gestos en un navegador o celular real.
+
+## Aprendizajes del proyecto original
 
 - Estructurar un proyecto de JavaScript en módulos y sistemas.
 - Programar un bucle de juego y manejar estado.
