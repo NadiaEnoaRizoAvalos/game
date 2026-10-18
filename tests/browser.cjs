@@ -1,0 +1,135 @@
+// Integración real: requiere Playwright y Edge/Chromium, solo como herramientas de prueba.
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+const { chromium } = require('playwright');
+const http = require('node:http');
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.resolve(__dirname, '..');
+const artifacts = path.join(root, '.test-artifacts');
+
+test('Navegador: IndexedDB, reinicio, descargas/importación y controles responsive', { timeout: 120000 }, async () => {
+  fs.mkdirSync(artifacts, { recursive: true });
+  const profile = fs.mkdtempSync(path.join(artifacts, 'profile-'));
+  const server = http.createServer((req, res) => {
+    const name = new URL(req.url, 'http://localhost').pathname;
+    const file = path.resolve(root, '.' + (name === '/' ? '/index.html' : name));
+    if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
+    try {
+      res.setHeader('Content-Type', file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : 'text/html');
+      res.end(fs.readFileSync(file));
+    } catch { res.writeHead(404); res.end(); }
+  });
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  const url = `http://127.0.0.1:${server.address().port}`;
+  const options = { headless: true, executablePath: process.env.BROWSER_EXECUTABLE || 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe', viewport: { width: 1280, height: 900 } };
+  let context;
+  const errors = [];
+  async function openPage(ctx) {
+    const page = await ctx.newPage();
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto(url);
+    await page.waitForFunction(() => !window.RainGame.saves.busy);
+    return page;
+  }
+  try {
+    context = await chromium.launchPersistentContext(profile, options);
+    let page = await openPage(context);
+    await page.locator('[data-action="continue"]').click();
+    assert.match(await page.locator('#save-status').textContent(), /No hay partida/);
+    await page.locator('[data-action="start"]').click();
+    await page.waitForFunction(() => window.RainGame.saves.active);
+    await page.evaluate(async () => {
+      const g = window.RainGame;
+      g.screens.pause();
+      g.collection.completePickup(g.state.current.items[0]);
+      g.state.current.resources.money = 123;
+      g.state.current.house.rooms.push({ id: 'future-kitchen' });
+      await g.saves.save();
+    });
+    const stored = await page.evaluate(async () => (await window.RainGame.database.read()).data);
+    assert.equal(stored.resources.money, 123);
+    assert.equal(stored.items[0].status, 'basket');
+    // Cerrar todo el contexto y reabrir el mismo perfil prueba persistencia en disco.
+    await context.close();
+    context = await chromium.launchPersistentContext(profile, options);
+    page = await openPage(context);
+    await page.locator('[data-action="continue"]').click();
+    await page.waitForFunction(() => window.RainGame.saves.active);
+    assert.deepEqual(await page.evaluate(() => {
+      const g = window.RainGame;
+      g.screens.pause();
+      const s = g.state.current;
+      return [s.resources.money, s.basket.length, s.basket[0] === s.items.find(p => p.id === s.basket[0].id), s.house.rooms[0].id];
+    }), [123, 1, true, 'future-kitchen']);
+    await page.locator('[data-action="saves"]').click();
+    const downloading = page.waitForEvent('download');
+    await page.locator('[data-action="export"]').click();
+    const download = await downloading;
+    assert.match(download.suggestedFilename(), /^antes-de-la-lluvia-dia-1-.*\.json$/);
+    const exported = path.join(artifacts, 'partida-exportada.json');
+    await download.saveAs(exported);
+    const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
+    assert.equal(imported.version, 1);
+    imported.data.resources.money = 456;
+    const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
+    page.once('dialog', dialog => dialog.dismiss());
+    await page.locator('#import-file').setInputFiles(filePayload);
+    await page.waitForFunction(() => !window.RainGame.saves.busy);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 123);
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#import-file').setInputFiles(filePayload);
+    await page.waitForFunction(() => window.RainGame.state.current.resources.money === 456);
+    await page.evaluate(() => window.RainGame.screens.pause());
+    await page.locator('[data-action="saves"]').click();
+    await page.locator('#import-file').setInputFiles({ name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{"version":99}') });
+    await page.waitForFunction(() => document.getElementById('save-status').textContent.includes('inválida'));
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 456);
+    // Un aborto real de IndexedDB deja current intacto.
+    assert.equal(await page.evaluate(async () => {
+      const g = window.RainGame;
+      const before = JSON.stringify(await g.database.read());
+      const put = IDBObjectStore.prototype.put;
+      IDBObjectStore.prototype.put = function (...args) { this.transaction.abort(); return put.apply(this, args); };
+      let failed = false;
+      try { await g.database.write(g.saveFormat.snapshot()); } catch { failed = true; }
+      finally { IDBObjectStore.prototype.put = put; }
+      return failed && JSON.stringify(await g.database.read()) === before;
+    }), true);
+    await page.evaluate(async () => {
+      const g = window.RainGame;
+      g.calendar.endDay();
+      await g.saves.save();
+    });
+    await page.locator('[data-action="nextDay"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.day), 2);
+    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('Escape');
+    await page.screenshot({ path: path.join(artifacts, 'desktop.png'), fullPage: true });
+    // Capturas y controles por Pointer Events en orientaciones de celular.
+    const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
+    const phone = await openPage(mobile);
+    await phone.locator('[data-action="start"]').click();
+    await phone.waitForFunction(() => window.RainGame.saves.active);
+    for (const [width, height, name] of [[390, 844, 'portrait'], [844, 390, 'landscape'], [320, 568, 'small']]) {
+      await phone.setViewportSize({ width, height });
+      await phone.evaluate(() => { window.RainGame.camera.configureViewport(); window.RainGame.screens.resume(); });
+      const joystick = phone.locator('#joystick');
+      const box = await joystick.boundingBox();
+      assert.ok(box && box.x >= 0 && box.y >= 0 && box.x + box.width <= width + 1 && box.y + box.height <= height + 1);
+      const action = await phone.locator('[data-key="collect"]').boundingBox();
+      assert.ok(action && action.x >= 0 && action.y >= 0 && action.x + action.width <= width + 1 && action.y + action.height <= height + 1);
+      await phone.screenshot({ path: path.join(artifacts, `${name}.png`) });
+      await phone.evaluate(() => { if (window.RainGame.state.current.mode === 'playing') window.RainGame.screens.pause(); });
+      await phone.locator('[data-action="saves"]').click();
+      await phone.locator('[data-action="export"]').scrollIntoViewIfNeeded();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-menu.png`) });
+      await phone.evaluate(() => window.RainGame.screens.resume());
+    }
+    await mobile.close();
+    assert.deepEqual(errors, []);
+  } finally {
+    if (context) await context.close();
+    await new Promise(resolve => server.close(resolve));
+  }
+});

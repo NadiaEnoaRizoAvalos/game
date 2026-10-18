@@ -22,6 +22,7 @@
   /** Construye la escena inicial y muestra el menú principal. */
   function menu() {
     Game.engine.resetTime();
+    if (Game.saves?.active) Game.saves.auto('menú');
     Game.audio.stop();
     Game.controls.clearInputs();
     if (!Game.state.current?.campaign) Game.state.current = Game.calendar.newGame();
@@ -34,10 +35,13 @@
 </button>
 <button class="secondary" data-action="help">INSTRUCCIONES</button>
 <button class="secondary" data-action="continue">CONTINUAR PARTIDA</button>
+<button class="secondary" data-action="saves">GUARDAR / IMPORTAR / EXPORTAR</button>
 </div>
+<p id="save-status" role="status" aria-live="polite"></p>
 <p class="tiny">DÍAS EN EL PATIO · UN CANASTO · MUCHAS DECISIONES</p>`);
     Game.dom.byId('pause').disabled = true;
     Game.hud.update();
+    if (Game.saves) Game.saves.status(Game.saves.message);
   }
 
   /** Detiene la partida y presenta el desglose de prendas y puntuación. */
@@ -84,6 +88,7 @@
 <div class="panel-actions">
 <button class="primary" data-action="resume">SEGUIR JUGANDO →</button>
 <button class="secondary" data-action="menu">VOLVER AL INICIO</button>
+${Game.state.current.campaign ? '<button class="secondary" data-action="saves">PARTIDAS Y RESPALDOS</button>' : ''}
 ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
@@ -124,6 +129,7 @@ ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">
 Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length} prendas pendientes.</p>
 <div class="panel-actions"><button class="primary" data-action="nextDay">DÍA SIGUIENTE →</button>
 <button class="secondary" data-action="resume">SEGUIR EN EL PATIO</button></div>`);
+    Game.hud.update();
   }
 
   /** Muestra instrucciones y recuerda si debe volver a una partida activa. */
@@ -165,8 +171,10 @@ Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length}
         return;
       }
       Game.audio.init();
-      if (a === 'start') Game.screens.startCampaign();
-      if (a === 'continue') Game.screens.resume();
+      if (Game.saves.busy) return;
+      Game.saveMenu.action(a);
+      if (a === 'start') Game.saves.start();
+      if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();
       if (a === 'endDay') {
         if (Game.state.current.dayEnded) Game.screens.daySummary();

@@ -15,12 +15,16 @@
 <script defer src="js/audio/audio.js"></script>
 <script defer src="js/core/state.js"></script>
 <script defer src="js/systems/calendar.js"></script>
+<script defer src="js/persistence/format.js"></script>
+<script defer src="js/persistence/database.js"></script>
+<script defer src="js/persistence/saves.js"></script>
 <script defer src="js/systems/player.js"></script>
 <script defer src="js/systems/collection.js"></script>
 <script defer src="js/systems/weather.js"></script>
 <script defer src="js/systems/effects.js"></script>
 <script defer src="js/ui/hud.js"></script>
 <script defer src="js/ui/screens.js"></script>
+<script defer src="js/ui/save-menu.js"></script>
 <script defer src="js/rendering/drawing.js"></script>
 <script defer src="js/rendering/sprites.js"></script>
 <script defer src="js/rendering/world.js"></script>
@@ -32,6 +36,7 @@
 <script defer src="js/main.js"></script>
 </head>
 <body>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
 <div id="weather-veil" class="weather-veil" aria-hidden="true">
 </div>
 <main class="shell">

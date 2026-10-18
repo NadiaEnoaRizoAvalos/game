@@ -10,6 +10,8 @@
     Game.camera.init();
     Game.screens.init();
     Game.integration.init();
+    Game.saveMenu.init();
+    Game.saves.init();
     requestAnimationFrame(Game.engine.frame);
   }
   start();
