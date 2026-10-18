@@ -24,14 +24,40 @@ La idea inicial era simple: un juego donde hay que **juntar la ropa antes de que
 3. Guardá la ropa en casa para sumar puntos.
 4. Hacelo antes de que termine el tiempo y empiece la lluvia.
 5. Al finalizar la jornada elegí **Día siguiente** o **Seguir en el patio**. También podés finalizar el día desde Pausa.
-6. Al comenzar otro día se ocupan los lugares libres de las sogas. Las prendas pendientes, la ropa guardada, el canasto y los puntos permanecen.
+6. Las prendas pendientes, la ropa guardada, el canasto y los puntos permanecen entre días. Las nuevas prendas llegan mediante pedidos.
+
+### La lavandería de María Carmen
+
+Desde **Pausa → Pedidos e insumos**, aceptá pedidos de los vecinos. En la puerta,
+cargá sus prendas; llevalas al lavadero a la derecha de la casa y mantené la acción
+para lavar. Acercate a una soga libre y presioná acción para tender, soltando entre
+prendas. Cuando estén secas, recogelas y guardalas en casa. Desde la puerta, abrí
+el tablón y entregá el pedido para cobrar. Primero podés guardar la ropa familiar
+original para liberar las sogas.
+
+El canasto conserva sus 6 unidades de volumen. Hay ocho lugares de tendido y un
+máximo de tres pedidos activos y doce prendas pendientes. El kit inicial se recibe
+una sola vez: $30, 12 de agua y 6 de jabón. Cada lavado consume 2 de agua y 1 de
+jabón; el paquete de reposición cuesta $12 y contiene 12 de agua y 6 de jabón.
+
+En **Pausa → Pronóstico y reputación** consultá el clima y la relación con los
+clientes. Sol, calor, nubes, brisa, viento, llovizna, lluvia y tormenta afectan el
+secado. El viento fuerte puede ensuciar y el calor afectar prendas delicadas;
+podés volver a lavarlas. La ropa guardada queda protegida. El HUD cuenta el tiempo
+hasta el próximo cambio climático.
+
+Las entregas puntuales mejoran la reputación; los retrasos la reducen. Tres quejas
+graves del mismo cliente suspenden sus pedidos durante tres días, con posibilidad
+de recuperar la relación. Los clientes con tres entregas puntuales y confianza
+suficiente ofrecen un adicional de $5. La cantidad de ofertas depende de la
+reputación; siempre existe una vía para recuperarse.
 
 ##  Controles
 
 | Acción | Computadora | Celular |
 |---|---|---|
 | Moverse | `W A S D` / flechas | Joystick en pantalla |
-| Descolgar ropa | Mantener `Espacio` | Botón **RECOGER** |
+| Recoger, lavar o tender | `Espacio`, según el contexto | Botón **RECOGER / LAVAR / TENDER** |
 | Guardar ropa | Volver a casa | Volver a casa |
 | Pausar | `P`, `Escape` o botón de pausa | Botón de pausa |
 
@@ -109,14 +135,21 @@ puede perderlos. El JSON sirve como respaldo externo y traslado manual entre dis
 ## Desarrollo de la versión 2.0
 
 La evolución hacia **La lavandería de María Carmen** se prepara en la rama
-`feature/lavanderia-maria-carmen-v2`. La **Fase 1** incorpora tiempo, jornadas y
-persistencia conservando el patio, el arte, las animaciones y los controles originales.
+`feature/lavanderia-maria-carmen-v2`. Las **Fases 1, 2 y 3** incorporan tiempo,
+jornadas, persistencia, lavandería, pedidos, pronósticos y reputación, conservando
+el patio, el arte, las animaciones y los controles originales.
 
 Consultá el [diagnóstico inicial](docs/FASE_0_DIAGNOSTICO.md) y el
-[informe de Fase 1](docs/FASE_1_INFORME.md). La Fase 2 necesita aprobación.
-Todavía no hay pedidos jugables, lavado, economía comercial, personajes nuevos,
-interiores ni construcciones; sus contenedores de datos están preparados y guardados.
-Los recursos empiezan en cero y los puntos mantienen su función original.
+[informe de Fase 1](docs/FASE_1_INFORME.md), el [informe de Fase 2](docs/FASE_2_INFORME.md)
+y el [informe de Fase 3](docs/FASE_3_INFORME.md). La Fase 4 necesita aprobación.
+No se incorporaron todavía interiores, construcciones ni economía familiar.
+Los vecinos aparecen en el tablón; no se agregaron sprites de personajes.
+El dinero comercial y los puntos de la ropa familiar se mantienen separados.
+
+El formato de guardado actual es **3**. Las partidas de formatos 1 y 2 se migran
+conservando el progreso; los nuevos datos comerciales se inicializan una sola vez.
+Pedidos, lavado parcial, clima, reputación y transacciones se guardan en IndexedDB
+y se incluyen en la exportación JSON. Los eventos comerciales también autoguardan.
 
 La duración de una jornada nueva se configura en `Game.config.simulation.daySeconds`
 en `js/config/game-config.js` (240 segundos por defecto; formato válido: 30–86400).
@@ -144,6 +177,8 @@ node --test tests/browser.cjs
 Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
 mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
 crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
+Resultado de cierre de Fase 3: **40 pruebas de lógica aprobadas**, incluidas las
+seis originales, y **un escenario integral de navegador aprobado**.
 Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
 sustituye una prueba física en Android/iPhone ni una revisión auditiva.
 

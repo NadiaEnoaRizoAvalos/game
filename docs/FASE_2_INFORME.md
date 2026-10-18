@@ -48,6 +48,6 @@ Integración: `index.html`, motor, calendario, recolección, colisiones del juga
 ## Historial y alcance
 
 - `ee5b627`: ciclo de pedidos, lavado, secado, transporte y esquema/migración.
-- El commit de interfaz y cierre de fase se informa en la entrega.
+- `ef99cb5`: interfaz del lavadero, tablón de pedidos, pruebas integrales y cierre de fase.
 - La usuaria autorizó continuar con Fase 3 **solo si las pruebas de Fase 2 no presentan errores**. Esa condición se verificó antes de comenzar pronósticos, calidad y reputación.
 - Las quejas, sanciones por retraso y reputación pertenecen a Fase 3; no se declaran implementadas en este cierre de Fase 2.
