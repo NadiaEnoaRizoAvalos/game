@@ -44,6 +44,7 @@
       time: 0,
       duration: 1.1,
       points,
+      orderOnly: family.length === 0,
       items: Game.state.current.basket.map(p => ({
         ...p
       })),
@@ -56,7 +57,7 @@
     Game.state.current.points += points;
     Game.audio.play('deposit');
     Game.effects.burst(Game.config.settings.door.x, Game.config.settings.door.y - 20, '#f0d486', 14);
-    Game.hud.toast(`¡A salvo! +${points} puntos guardados`);
+    Game.hud.toast(family.length ? `¡A salvo! +${points} puntos guardados` : 'Prendas guardadas bajo techo. Revisá el pedido para entregar.');
     Game.saves?.auto('descarga');
   }
 

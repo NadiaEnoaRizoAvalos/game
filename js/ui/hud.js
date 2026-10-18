@@ -44,6 +44,16 @@
     Game.dom.byId('capacity').textContent = Game.collection.usedSpace();
     Game.dom.byId('capacity-bar').style.width = Game.collection.usedSpace() / Game.collection.capacity() * 100 + '%';
     Game.dom.byId('hint').textContent = contextualHint(gameState);
+    const action = Game.laundry.context();
+    const touch = document.querySelectorAll('[data-key="collect"]')[0];
+    if (touch) {
+      const name = action?.kind === 'wash' ? 'LAVAR' : action?.kind === 'hang' ? 'TENDER' : 'RECOGER';
+      if (touch.dataset.label !== name) {
+        touch.dataset.label = name;
+        touch.innerHTML = `<span class="collect-icon" aria-hidden="true">▧</span>${name}`;
+        touch.setAttribute('aria-label', name);
+      }
+    }
   }
 
   /** Elige la ayuda según el menú, la prenda cercana o el estado del clima. */
@@ -51,8 +61,12 @@
     if (gameState.mode === 'menu') {
       return '● Un cielo tranquilo… por ahora.';
     }
+    const action = Game.laundry.context();
+    if (action?.kind === 'wash') return action.item ? `Mantené acción para lavar ${action.item.name} · Agua ${gameState.resources.water} · Jabón ${gameState.resources.soap}` : 'Lavadero: traé prendas sucias en el canasto. Pedidos está en Pausa.';
+    if (action?.kind === 'hang') return `Acción: tender ${action.item.name} en este lugar libre.`;
     const garment = gameState.target;
     if (garment) {
+      if (garment.orderId) return `${garment.name} · Humedad ${Math.round(garment.wetness)}% · Limpieza ${Math.round(garment.cleanliness)}% · ${garment.size} espacios`;
       return [
         `${garment.special ? '★ ' : ''}${garment.name}`,
         `${Game.collection.scoreFor(garment)} pts`,
@@ -67,7 +81,7 @@
     if (gameState.rainStarted) {
       return '☂ Llueve en todo el patio. La tormenta se acerca.';
     }
-    return '↖ Casa: guardá la ropa. Podés recorrer las tres sogas.';
+    return gameState.laundry ? '↖ Casa: cargar y guardar · Lavadero a la derecha · Pausa: pedidos' : '↖ Casa: guardá la ropa. Podés recorrer las tres sogas.';
   }
   Game.hud = {
     showPanel: showPanel,

@@ -7,6 +7,10 @@
   const Game = window.RainGame;
   /** Indica si la posición de los pies está libre de casa, huerta y postes. */
   function canStand(x, y) {
+    if (Game.state.current?.laundry) {
+      const station = Game.config.laundry.station;
+      if (x > station.x - 27 && x < station.x + 27 && y > station.y - 40 && y < station.y - 7) return false;
+    }
     return !Game.config.obstacles.some(o => x > o.x - 12 && x < o.x + o.w + 12 && y > o.y - 9 && y < o.y + o.h + 9) && !Game.config.ropes.some(r => [r.x1, r.x2].some(px => Math.hypot(x - px, y - r.y) < 17));
   }
 

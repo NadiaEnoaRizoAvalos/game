@@ -190,7 +190,7 @@
         });
         context.globalAlpha = 1;
       }
-      label('+' + a.points + ' puntos', 174, 157 - a.time * 20, 13, '#fcdf9b');
+      label(a.orderOnly ? 'A resguardo' : '+' + a.points + ' puntos', 174, 157 - a.time * 20, 13, '#fcdf9b');
     }
   }
   Game.sprites = {

@@ -90,6 +90,7 @@
 <button class="secondary" data-action="menu">VOLVER AL INICIO</button>
 ${Game.state.current.campaign ? '<button class="secondary" data-action="saves">PARTIDAS Y RESPALDOS</button>' : ''}
 ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
+${Game.state.current.laundry ? '<button class="secondary" data-action="orders">PEDIDOS E INSUMOS</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -127,7 +128,8 @@ ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">
     Game.hud.showPanel(`<div class="eyebrow">DÍA ${s.day}</div>
 <h2>Un respiro en casa.</h2>
 <p>Hoy: ${s.points - s.dayStartPoints} puntos · ${s.saved - s.dayStartSaved} prendas guardadas.<br>
-Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length} prendas pendientes.</p>
+Total: ${s.points} puntos · ${s.items.filter(p => !['saved', 'delivered'].includes(p.status)).length} prendas pendientes.</p>
+${s.laundry ? `<p>Saldo: $${s.resources.money} · Variación del día: $${s.resources.money - s.laundry.dayStartMoney}<br>Pedidos pendientes: ${s.orders.filter(o => o.state === 'accepted').length}</p>` : ''}
 <div class="panel-actions"><button class="primary" data-action="nextDay">DÍA SIGUIENTE →</button>
 <button class="secondary" data-action="resume">SEGUIR EN EL PATIO</button></div>`);
     Game.hud.update();
@@ -151,6 +153,11 @@ Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length}
 <b>4.</b> El canasto tiene 6 unidades de volumen: una sábana ocupa 3.<br>
 <b>5.</b> Al terminar el día, elegí seguir en el patio o avanzar. La ropa pendiente y los puntos se conservan. También podés finalizar desde Pausa.<br>
 <b>6.</b> En Partidas y respaldos podés guardar o descargar una copia JSON. El juego guarda automáticamente mientras jugás.</p>
+<p><b>Lavandería:</b> abrí Pausa → Pedidos e insumos. Aceptá un encargo, acercate a la puerta y cargá sus prendas.
+Caminá al lavadero a la derecha de la casa y mantené Espacio/acción para lavar. Cada prenda usa 2 de agua y 1 de jabón.
+Llevá la ropa limpia a un lugar libre de las sogas y presioná acción para tender; soltá entre prendas.
+Esperá humedad 0%, recogé y guardá en casa. Entregá desde Pedidos para cobrar.<br>
+La ropa familiar que ya estaba colgada conserva los puntos del juego original; recogela para liberar sogas.</p>
 <button class="primary" data-action="closeHelp">¡ENTENDIDO!</button>`);
   }
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
@@ -177,6 +184,7 @@ Total: ${s.points} puntos · ${s.items.filter(p => p.status !== 'saved').length}
       Game.audio.init();
       if (Game.saves.busy) return;
       Game.saveMenu.action(a);
+      Game.ordersMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

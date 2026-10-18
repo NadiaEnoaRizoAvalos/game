@@ -114,6 +114,48 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     await page.keyboard.press('ArrowRight');
     await page.keyboard.press('Escape');
     await page.screenshot({ path: path.join(artifacts, 'desktop.png'), fullPage: true });
+    // Ciclo completo de Fase 2 con menú real y el mismo botón de acción.
+    page.once('dialog', dialog => dialog.accept());
+    await page.evaluate(() => window.RainGame.saves.start());
+    await page.evaluate(() => {
+      const g = window.RainGame;
+      for (const p of g.state.current.items) { g.collection.completePickup(p); g.collection.deposit(); }
+      Object.assign(g.state.current.player, g.config.settings.door);
+      g.screens.pause();
+    });
+    await page.locator('[data-action="orders"]').click();
+    await page.locator('[data-action="order:view:order-1"]').click();
+    await page.locator('[data-action="order:accept:order-1"]').click();
+    await page.locator('[data-action="order:load:order-1"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.basket.length), 3);
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => Object.assign(window.RainGame.state.current.player, window.RainGame.config.laundry.station));
+    await page.keyboard.down('Space');
+    await page.evaluate(() => { for (let i = 0; i < 100; i++) window.RainGame.engine.update(.1); });
+    await page.keyboard.up('Space');
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.basket.every(p => p.cleanliness === 100)), true);
+    for (let slot = 0; slot < 3; slot++) {
+      await page.evaluate(slot => Object.assign(window.RainGame.state.current.player, window.RainGame.state.garmentPosition(slot, 8)), slot);
+      await page.keyboard.down('Space');
+      await page.waitForFunction(slot => window.RainGame.state.current.items.some(p => p.orderId && p.slot === slot && p.status === 'hanging'), slot);
+      await page.keyboard.up('Space');
+      await page.evaluate(() => window.RainGame.engine.update(.02));
+    }
+    await page.evaluate(() => {
+      const g = window.RainGame;
+      g.engine.update(40);
+      for (const p of g.orders.goods(g.state.current.orders[0])) g.collection.completePickup(p);
+      Object.assign(g.state.current.player, g.config.settings.door);
+      g.collection.deposit();
+      g.screens.pause();
+    });
+    await page.locator('[data-action="orders"]').click();
+    await page.locator('[data-action="order:view:order-1"]').click();
+    await page.screenshot({ path: path.join(artifacts, 'pedido-listo.png'), fullPage: true });
+    await page.locator('[data-action="order:deliver:order-1"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.orders[0].state), 'delivered');
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 66);
+    await page.evaluate(() => window.RainGame.saves.save());
     // Capturas y controles por Pointer Events en orientaciones de celular.
     const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const phone = await openPage(mobile);
@@ -145,6 +187,10 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       await phone.locator('[data-action="export"]').scrollIntoViewIfNeeded();
       await phone.screenshot({ path: path.join(artifacts, `${name}-menu.png`) });
       await phone.evaluate(() => window.RainGame.screens.resume());
+      await phone.evaluate(() => window.RainGame.screens.pause());
+      await phone.locator('[data-action="orders"]').click();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-orders.png`) });
+      await phone.locator('[data-action="resume"]').click();
     }
     await mobile.close();
     assert.deepEqual(errors, []);

@@ -123,6 +123,7 @@
       y: t.y,
       draw: () => Game.world.tree(t.x, t.y, t.z)
     }))];
+    if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
     if (target) {
       const x = target.x;
