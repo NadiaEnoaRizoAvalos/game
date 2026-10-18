@@ -24,7 +24,8 @@ test('JSON round-trip reconstruye referencias únicas y todos los campos persist
   const s = game.state.current;
   game.collection.completePickup(s.items[0]);
   s.resources.money = 75;
-  s.orders = [{ id: 'future-order', dueDay: 3 }];
+  const order = s.orders[0];
+  game.orders.accept(order.id);
   s.characters = [{ id: 'jaqui', experience: 1 }];
   s.constructions = [{ id: 'rope-4' }];
   s.house.rooms.push({ id: 'kitchen' });
@@ -36,7 +37,8 @@ test('JSON round-trip reconstruye referencias únicas y todos los campos persist
   assert.equal(restored.basket[0], restored.items.find(p => p.id === restored.basket[0].id));
   assert.equal(restored.resources.money, 75);
   assert.equal(restored.house.rooms[0].id, 'kitchen');
-  assert.equal(restored.orders[0].dueDay, 3);
+  assert.equal(restored.orders[0].dueDay, order.dueDay);
+  assert.equal(restored.orders[0].state, 'accepted');
   assert.equal(restored.basketCapacity, 8);
   assert.equal(restored.target, null);
   assert.equal(restored.flights.length, 0);
@@ -171,7 +173,7 @@ test('Nueva partida necesita confirmación y conserva copia de la anterior', asy
   assert.equal(game.state.current.resources.money, 99);
   window.confirm = () => true;
   assert.equal(await game.saves.start(), true);
-  assert.equal(game.state.current.resources.money, 0);
+  assert.equal(game.state.current.resources.money, game.config.laundry.starter.money);
   assert.equal(records.get('backup').data.resources.money, 99);
 });
 

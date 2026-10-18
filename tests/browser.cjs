@@ -70,7 +70,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const exported = path.join(artifacts, 'partida-exportada.json');
     await download.saveAs(exported);
     const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
-    assert.equal(imported.version, 1);
+    assert.equal(imported.version, 2);
     imported.data.resources.money = 456;
     const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
     page.once('dialog', dialog => dialog.dismiss());

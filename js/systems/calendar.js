@@ -40,6 +40,7 @@
   function newGame() {
     const state = create();
     replenish(state);
+    Game.orders.initialize(state);
     return state;
   }
 
@@ -65,7 +66,10 @@
     s.rainStarted = s.stormAnnounced = false;
     s.thunderAt = s.weatherProfile.delay - 4;
     Game.audio.stop();
-    replenish(s);
+    if (s.laundry) {
+      s.laundry.dayStartMoney = s.resources.money;
+      Game.orders.generate(s);
+    } else replenish(s);
     Game.screens.resume();
     Game.saves?.auto('nuevo día');
     return true;

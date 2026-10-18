@@ -38,7 +38,8 @@
     if (!Game.state.current.basket.length) {
       return;
     }
-    const points = Game.state.current.basket.reduce((s, p) => s + Game.collection.scoreFor(p), 0);
+    const family = Game.state.current.basket.filter(p => !p.orderId);
+    const points = family.reduce((s, p) => s + Game.collection.scoreFor(p), 0);
     Game.state.current.depositAnim = {
       time: 0,
       duration: 1.1,
@@ -49,8 +50,8 @@
       x: Game.state.current.player.x,
       y: Game.state.current.player.y
     };
-    Game.state.current.basket.forEach(p => p.status = 'saved');
-    Game.state.current.saved += Game.state.current.basket.length;
+    Game.state.current.basket.forEach(p => p.status = p.orderId ? 'stored' : 'saved');
+    Game.state.current.saved += family.length;
     Game.state.current.basket = [];
     Game.state.current.points += points;
     Game.audio.play('deposit');
@@ -64,6 +65,7 @@
     if (!Game.state.current.items.includes(target) || target.status !== 'hanging' ||
         usedSpace() + target.size > capacity()) return;
     target.status = 'basket';
+    if (target.orderId) target.slot = null;
     Game.state.current.basket.push(target);
     Game.state.current.flights.push({
       item: {
@@ -89,9 +91,12 @@
   /** Procesa descarga, objetivo y progreso de recogida; soltar cancela el progreso. */
   function updateCollection(deltaSeconds) {
     const gameState = Game.state.current;
-    if (Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius) {
+    const atDoor = Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius;
+    if (gameState.laundry && !atDoor) gameState.laundry.leaveDoor = false;
+    if (atDoor && !gameState.laundry?.leaveDoor) {
       Game.collection.deposit();
     }
+    if (Game.laundry?.interact(deltaSeconds)) return;
     const target = Game.collection.nearest();
     if (target !== gameState.target) {
       gameState.target = target;

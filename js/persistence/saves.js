@@ -96,7 +96,9 @@
       await queue;
       const envelope = await Game.database.read();
       if (!envelope) { status('No hay partida guardada. Elegí Nueva partida.'); return false; }
-      activate(Game.saveFormat.restore(envelope));
+      const state = Game.saveFormat.restore(envelope);
+      if (envelope.version < Game.saveFormat.VERSION) await enqueue(Game.saveFormat.snapshot(state), true);
+      activate(state);
       return true;
     });
   }
@@ -108,7 +110,7 @@
       if (!window.confirm(`¿Importar el día ${state.day} y reemplazar la partida actual? Se conservará un respaldo en este navegador.`)) return false;
       await queue;
       if (active) await save();
-      await enqueue(envelope, true);
+      await enqueue(Game.saveFormat.snapshot(state), true);
       activate(state);
       return true;
     });
@@ -121,7 +123,7 @@
       if (!envelope) { status('No hay copia anterior disponible. Podés importar un archivo JSON.'); return false; }
       const state = Game.saveFormat.restore(envelope);
       if (!window.confirm(`¿Recuperar la copia anterior del día ${state.day}? Se respaldará la partida reemplazada.`)) return false;
-      await enqueue(envelope, true);
+      await enqueue(Game.saveFormat.snapshot(state), true);
       activate(state);
       return true;
     });

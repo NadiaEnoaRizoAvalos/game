@@ -35,6 +35,7 @@
     Game.player.move(dx, dy, deltaSeconds);
     Game.collection.update(deltaSeconds);
     Game.weather.update(deltaSeconds);
+    Game.laundry.update(deltaSeconds);
     Game.effects.updateParticles(deltaSeconds);
     if (Game.state.current.campaign) {
       if (Game.state.current.elapsed >= Game.state.current.daySeconds && !Game.state.current.dayEnded) {
