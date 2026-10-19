@@ -75,6 +75,26 @@ del juego. Hay cuartos para María, José y Jaqui, y un lavadero cubierto con pi
 comprable. El plano interior crece con las compras. Los muebles tienen posiciones
 preparadas para mantener libres las puertas; no hay colocación libre todavía.
 
+### Construir el patio
+
+Desde **Pausa → Construir patio y herramientas**, comprá caminos, flores, árboles,
+arbustos, cercos, sogas, tendederos protegidos, lavaderos y depósitos. Elegí una
+casilla con el mouse, un toque o las flechas/WASD; **Confirmar** instala y cobra.
+El tiempo se pausa mientras elegís. R gira los cercos y Escape/P o Salir cancelan.
+En celulares hay flechas y botones de construcción.
+
+Los objetos originales mantienen su lugar. Las construcciones nuevas pueden
+moverse gratis o retirarse con confirmación y reintegro de la mitad del precio;
+la madera no se devuelve. Primero hay que recoger la ropa de las sogas ocupadas.
+El juego rechaza superposiciones y construcciones que cierren accesos o encierren
+al personaje. Hay un máximo de 64 objetos activos y 1000 registros por partida.
+
+Cada soga agrega dos lugares. Las cubiertas reducen la lluvia y el polvo; los
+árboles dan sombra, los caminos mejoran la velocidad y los depósitos permiten
+cargar/guardar prendas. Los depósitos comparten el almacenamiento de la casa.
+También podés comprar canastos de **8 o 12 unidades de volumen** y una tabla de
+lavado más rápida. Todas las compras usan dinero ficticio y quedan guardadas.
+
 ##  Controles
 
 | Acción | Computadora | Celular |
@@ -158,7 +178,7 @@ puede perderlos. El JSON sirve como respaldo externo y traslado manual entre dis
 ## Desarrollo de la versión 2.0
 
 La evolución hacia **La lavandería de María Carmen** se prepara en la rama
-`feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 5** incorporan tiempo,
+`feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 6** incorporan tiempo,
 jornadas, persistencia, lavandería, pedidos, pronósticos y reputación, conservando
 el patio, el arte, las animaciones y los controles originales. También incorporan
 familia, gastos, descanso, interior transitable, ampliaciones y muebles.
@@ -166,16 +186,17 @@ familia, gastos, descanso, interior transitable, ampliaciones y muebles.
 Consultá el [diagnóstico inicial](docs/FASE_0_DIAGNOSTICO.md) y el
 [informe de Fase 1](docs/FASE_1_INFORME.md), el [informe de Fase 2](docs/FASE_2_INFORME.md)
 y el [informe de Fase 3](docs/FASE_3_INFORME.md), además de los informes de
-[Fase 4](docs/FASE_4_INFORME.md) y [Fase 5](docs/FASE_5_INFORME.md).
-La Fase 6 necesita aprobación. Todavía no hay construcción libre del patio ni
-automatización. Los clientes aparecen en el tablón; José y Jaqui tienen sprites
+[Fase 4](docs/FASE_4_INFORME.md), [Fase 5](docs/FASE_5_INFORME.md) y
+[Fase 6](docs/FASE_6_INFORME.md).
+La Fase 7 necesita aprobación. Todavía no hay automatización ni máquinas.
+Los clientes aparecen en el tablón; José y Jaqui tienen sprites
 propios dentro de la casa, dibujados con la paleta y las primitivas originales.
 El dinero comercial y los puntos de la ropa familiar se mantienen separados.
 
-El formato de guardado actual es **5**. Las partidas de formatos 1 a 4 se migran
+El formato de guardado actual es **6**. Las partidas de formatos 1 a 5 se migran
 conservando el progreso; los nuevos datos comerciales se inicializan una sola vez.
 Pedidos, lavado parcial, clima, reputación, transacciones, familia, escena, posición,
-habitaciones, muebles y materiales se guardan en IndexedDB
+habitaciones, muebles, materiales, construcciones y herramientas se guardan en IndexedDB
 y se incluyen en la exportación JSON. Los eventos comerciales también autoguardan.
 
 La duración de una jornada nueva se configura en `Game.config.simulation.daySeconds`
@@ -204,7 +225,7 @@ node --test tests/browser.cjs
 Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
 mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
 crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
-Resultado de cierre de Fase 5: **55 pruebas de lógica aprobadas**, incluidas las
+Resultado de cierre de Fase 6: **67 pruebas de lógica aprobadas**, incluidas las
 seis originales, y **un escenario integral de navegador aprobado**.
 Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
 sustituye una prueba física en Android/iPhone ni una revisión auditiva.
