@@ -19,7 +19,7 @@
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, Game.dom.canvas.width, Game.dom.canvas.height);
     context.save();
-    const camera = Game.camera.viewport.mobile ? Game.camera.cameraFor(Game.camera.viewport.width, Game.camera.viewport.height, gameState.player) : {
+    const camera = gameState.mode === 'building' ? Game.buildMenu.camera() : Game.camera.viewport.mobile ? Game.camera.cameraFor(Game.camera.viewport.width, Game.camera.viewport.height, gameState.player) : {
       scale: 1,
       x: 0,
       y: 0
@@ -84,6 +84,7 @@
         rect(x - 1, y + 3, 4, 3, '#d8a565');
       }
     }
+    Game.yardDrawing.ground();
     // Ground markers make the collection radius readable from either side.
     const target = gameState.mode === 'playing' ? Game.collection.nearest() : null;
     if (target) {
@@ -129,6 +130,7 @@
       draw: () => Game.world.tree(t.x, t.y, t.z)
     }))];
     if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
+    layers.push(...Game.yardDrawing.layers());
     if (gameState.family && !gameState.house.layoutVersion) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
     Game.familyDrawing.mate();
@@ -166,8 +168,9 @@
       context.fillStyle = `rgba(255,255,228,${gameState.flash})`;
       context.fillRect(0, 0, w, h);
     }
+    Game.yardDrawing.preview();
     context.restore();
-    if (Game.camera.viewport.mobile) {
+    if (Game.camera.viewport.mobile && gameState.mode !== 'building') {
       Game.renderer.drawHomeDirection(camera);
     }
   }

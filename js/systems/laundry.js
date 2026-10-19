@@ -4,7 +4,7 @@
   const Game = window.RainGame;
   const cfg = () => Game.config.laundry;
   const current = () => Game.state.current;
-  function duration(item) { return cfg().wash.seconds + item.size; }
+  function duration(item) { return (cfg().wash.seconds + item.size) * (current().yard?.tools.includes('washboard') ? .8 : 1); }
   function needsWash(item) {
     const order = current().orders.find(o => o.id === item.orderId);
     return order && item.cleanliness < order.requiredQuality;
@@ -15,6 +15,7 @@
       return a?.kind === 'wash';
     }
     const p = current().player;
+    if (Game.yard.active().some(b => b.type === 'basin' && Math.hypot(p.x - b.x - 30, p.y - b.y - 40) <= 43)) return true;
     const station = cfg().station;
     return Math.hypot(p.x - station.x, p.y - station.y) <= station.radius;
   }
@@ -69,9 +70,9 @@
     if (current().scene === 'house') return null;
     const s = current();
     let nearest = null;
-    for (let slot = 0; slot < cfg().slots; slot++) {
+    for (const position of Game.yard.slots(s)) {
+      const slot = position.slot;
       if (s.items.some(p => p.status === 'hanging' && p.slot === slot)) continue;
-      const position = Game.state.garmentPosition(slot, cfg().slots);
       const distance = Math.hypot(position.x - s.player.x, position.y - s.player.y);
       if (distance < Game.config.settings.pickRadius && (!nearest || distance < nearest.distance)) nearest = { slot, ...position, distance };
     }
@@ -81,9 +82,10 @@
   function hang(item, slot) {
     const s = current();
     if (s.scene === 'house') return false;
-    if (!s.basket.includes(item) || !item.orderId || needsWash(item) || !Number.isInteger(slot) || slot < 0 || slot >= cfg().slots) return false;
+    if (!s.basket.includes(item) || !item.orderId || needsWash(item)) return false;
     if (s.items.some(p => p.status === 'hanging' && p.slot === slot)) return false;
-    const position = Game.state.garmentPosition(slot, cfg().slots);
+    const position = Game.yard.position(slot, s);
+    if (!position) return false;
     if (Math.hypot(position.x - s.player.x, position.y - s.player.y) >= Game.config.settings.pickRadius) return false;
     s.basket = s.basket.filter(p => p !== item);
     Object.assign(item, position, { slot, status: 'hanging' });
@@ -127,10 +129,10 @@
     const s = current();
     if (!s.laundry) return;
     for (const p of s.items) {
-      if (!p.orderId || p.status !== 'hanging' || s.rainIntensity > 0) continue;
+      if (!p.orderId || p.status !== 'hanging' || (s.rainIntensity > 0 && Game.yard.cover(p, s) === 1)) continue;
       const c = Game.climate.conditions();
       const environment = c ? c.temperature / 28 * (1 - c.humidity / 100 * .7) * (.4 + .6 * c.sun) * (Game.climate.shelter(p) ? .65 : 1) : 1;
-      const rate = cfg().fabrics[p.type] * (1 + Game.state.weather().wind * .08) * environment;
+      const rate = cfg().fabrics[p.type] * (1 + Game.state.weather().wind * .08) * environment * (Game.yard.cover(p, s) < 1 ? .8 : 1) * (s.rainIntensity > 0 ? .5 : 1);
       p.wetness = Math.max(0, p.wetness - rate * dt);
     }
   }

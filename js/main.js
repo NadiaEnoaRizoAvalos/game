@@ -9,6 +9,7 @@
     Game.controls.init();
     Game.camera.init();
     Game.screens.init();
+    Game.buildMenu.init();
     Game.integration.init();
     Game.saveMenu.init();
     Game.saves.init();

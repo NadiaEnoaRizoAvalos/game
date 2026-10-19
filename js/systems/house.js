@@ -44,12 +44,13 @@
       !walls(s).some(w => hits(x, y, w)) && !furniture(s).some(f => !f.walkable && hits(x, y, f));
   }
   function atStorage(s = current()) {
+    if (s.scene !== 'house') return Game.yard.atStorage(s);
     return s.scene === 'house' && furniture(s).some(f => f.action === 'storage' && near(s.player, f.x + f.w / 2, f.y + f.h + 12, 50));
   }
   function context() {
     const s = current();
     if (!s.house?.layoutVersion) return null;
-    if (s.scene !== 'house') return Game.orders.atDoor() ? { kind: 'enter', label: 'ENTRAR' } : null;
+    if (s.scene !== 'house') return Game.orders.atDoor() ? { kind: 'enter', label: 'ENTRAR' } : Game.yard.context();
     if (near(s.player, cfg().door.x, cfg().door.y, cfg().door.radius)) return { kind: 'exit', label: 'SALIR' };
     const f = furniture(s).filter(f => near(s.player, f.x + f.w / 2, f.y + f.h + 12, 45))
       .sort((a, b) => Math.hypot(s.player.x - a.x - a.w / 2, s.player.y - a.y - a.h) - Math.hypot(s.player.x - b.x - b.w / 2, s.player.y - b.y - b.h))[0];

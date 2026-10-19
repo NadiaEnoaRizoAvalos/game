@@ -22,7 +22,7 @@
       rect(x - 21, y - 44, 42 * p.washProgress / Game.laundry.duration(p), 3, '#f2d48b');
     }
     if (action?.kind === 'hang') {
-      const position = Game.state.garmentPosition(action.slot, 8);
+      const position = Game.yard.position(action.slot);
       label('TENDER', position.x, position.y + 22, 9, '#3c513e');
     }
   }

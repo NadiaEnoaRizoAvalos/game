@@ -14,7 +14,7 @@
   }
   function ledger() {
     const s = Game.state.current;
-    const names = { delivery: 'Pedido entregado', supplies: 'Agua y jabón', family: 'Gasto familiar', house: 'Casa y muebles' };
+    const names = { delivery: 'Pedido entregado', supplies: 'Agua y jabón', family: 'Gasto familiar', house: 'Casa y muebles', yard: 'Patio y herramientas' };
     Game.hud.showPanel(`<h2>Libro de cuentas.</h2><p>Saldo: $${s.resources.money}. Últimos 50 movimientos; el historial completo queda guardado.</p>
       ${s.laundry.ledger.slice(-50).reverse().map(e => `<p>Día ${e.day} · ${names[e.kind]} · ${e.amount > 0 ? '+' : ''}$${e.amount}</p>`).join('') || '<p>Todavía no hay movimientos.</p>'}
       ${button('family', 'VOLVER A LA FAMILIA')}${button('resume', 'SEGUIR JUGANDO')}`);

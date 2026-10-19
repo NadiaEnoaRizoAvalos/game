@@ -75,6 +75,7 @@
 
   /** Pausa la simulación y suelta los controles; si estaba pausada, reanuda. */
   function pause(suppressSave = false) {
+    if (Game.state.current.mode === 'building') { Game.buildMenu.finish(); return; }
     if (Game.state.current.mode === 'playing') {
       Game.state.current.mode = 'paused';
       Game.engine.resetTime();
@@ -94,6 +95,7 @@ ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">P
 ${Game.state.current.climate ? '<button class="secondary" data-action="forecast">PRONÓSTICO Y REPUTACIÓN</button>' : ''}
 ${Game.state.current.family ? '<button class="secondary" data-action="family">FAMILIA Y ECONOMÍA</button>' : ''}
 ${Game.state.current.house?.layoutVersion ? '<button class="secondary" data-action="house">CASA Y MUEBLES</button>' : ''}
+${Game.state.current.yard ? '<button class="secondary" data-action="build">CONSTRUIR PATIO Y HERRAMIENTAS</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -142,6 +144,7 @@ ${s.family ? `<p>Ingresos de hoy: $${Game.economy.summary(s.day).income} · Gast
 
   /** Muestra instrucciones y recuerda si debe volver a una partida activa. */
   function help() {
+    if (Game.state.current.mode === 'building') Game.buildMenu.finish();
     Game.runtime.helpWasPlaying = Game.state.current.mode === 'playing';
     if (Game.runtime.helpWasPlaying) {
       Game.engine.resetTime();
@@ -166,6 +169,7 @@ La ropa familiar que ya estaba colgada conserva los puntos del juego original; r
 <p><b>Casa:</b> junto a la puerta, presioná acción para entrar. Caminá hasta los muebles y José o Jaqui para interactuar.
 El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la puerta exterior. En Pausa → Casa y muebles podés comprar materiales, habitaciones y muebles.</p>
 <p><b>Familia:</b> en Pausa → Familia y economía revisá gastos aplazables y cuentas. Si resolviste los encargos que vencen hoy, podés sentarte a tomar mates y consultar el resumen; los pedidos futuros pueden esperar.</p>
+<p><b>Construcción:</b> en Pausa → Construir patio y herramientas elegí un objeto. Ubicalo con el mouse, tocando una casilla o con las flechas; confirmá para comprar. El tiempo está detenido mientras elegís. Los accesos y el patio original están protegidos. Podés mover o retirar construcciones nuevas cuando no tengan ropa tendida.</p>
 <button class="primary" data-action="closeHelp">¡ENTENDIDO!</button>`);
   }
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
@@ -196,6 +200,7 @@ El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la p
       Game.climateMenu.action(a);
       Game.familyMenu.action(a);
       Game.houseMenu.action(a);
+      Game.buildMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

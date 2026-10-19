@@ -25,9 +25,10 @@
     return s.climate ? Game.config.climate[s.climate.segments[index(s)].kind] : null;
   }
   function next(s = Game.state.current) { return s.climate?.segments[index(s) + 1] || null; }
-  function shelter(p) {
+  function shelter(p, s = Game.state.current) {
     // Árboles originales: sombra y menor exposición al polvo, sin mover el patio.
-    return [{ x: 45, y: 105 }, { x: 933, y: 88 }, { x: 936, y: 372 }, { x: 60, y: 586 }, { x: 318, y: 593 }]
+    return [{ x: 45, y: 105 }, { x: 933, y: 88 }, { x: 936, y: 372 }, { x: 60, y: 586 }, { x: 318, y: 593 },
+      ...Game.yard.active(s).filter(b => b.type === 'tree').map(b => ({ x: b.x + 30, y: b.y + 55 }))]
       .some(t => Math.hypot(p.x - t.x, p.y - t.y) < 95);
   }
   function update(dt) {
@@ -54,10 +55,10 @@
     for (const p of s.items) {
       if (!['hanging', 'basket'].includes(p.status)) continue;
       if (p.status === 'basket' && s.scene === 'house') continue;
-      if (s.rainIntensity > 0) p.wetness = Game.utils.clamp(p.wetness + dt * 5 * s.rainIntensity / p.resistance, 0, 100);
+      if (s.rainIntensity > 0) p.wetness = Game.utils.clamp(p.wetness + dt * 5 * s.rainIntensity / p.resistance * Game.yard.cover(p, s), 0, 100);
       if (!p.orderId) continue;
       const qualityBefore = p.cleanliness;
-      const cover = shelter(p) ? .35 : 1;
+      const cover = (shelter(p) ? .35 : 1) * (Game.yard.cover(p, s) < 1 ? .35 : 1);
       if (c.dust && p.status === 'hanging' && s.rainIntensity === 0) p.cleanliness = Math.max(0, p.cleanliness - c.dust * cover * dt);
       if (c.temperature >= 35 && p.type === 'blouse' && p.status === 'hanging' && p.wetness < 20 && !shelter(p)) {
         p.cleanliness = Math.max(0, p.cleanliness - .04 * dt);

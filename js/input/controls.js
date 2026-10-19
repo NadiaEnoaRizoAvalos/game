@@ -85,6 +85,7 @@
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
   function init() {
     window.addEventListener('keydown', e => {
+      if (Game.state.current.mode === 'building') { Game.buildMenu.key(e); return; }
       const k = Game.controls.keyMap[e.key] || Game.controls.keyMap[e.key.toLowerCase()];
       if (k && Game.state.current.mode === 'playing') {
         e.preventDefault();

@@ -27,11 +27,12 @@ test('JSON round-trip reconstruye referencias únicas y todos los campos persist
   const order = s.orders[0];
   game.orders.accept(order.id);
   s.characters = [{ id: 'jaqui', experience: 1 }];
-  s.constructions = [{ id: 'rope-4' }];
+  s.yard.legacyConstructions = [{ id: 'rope-4' }];
   s.house.legacy.rooms.push({ id: 'kitchen' });
   s.skills = { washing: 2 };
   s.upgrades = [{ id: 'basket-8' }];
   s.basketCapacity = 8;
+  s.yard.baseBasketCapacity = 8;
   const encoded = game.saveFormat.snapshot();
   const restored = game.saveFormat.restore(game.saveFormat.parse(JSON.stringify(encoded)));
   assert.equal(restored.basket[0], restored.items.find(p => p.id === restored.basket[0].id));

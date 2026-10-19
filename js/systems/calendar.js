@@ -45,6 +45,7 @@
     Game.reputation.initialize(state);
     Game.family.initialize(state);
     Game.house.initialize(state);
+    Game.yard.initialize(state);
     return state;
   }
 

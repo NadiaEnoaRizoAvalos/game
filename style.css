@@ -313,6 +313,25 @@ canvas {
   touch-action:pan-y
 }
 
+/* La construcción usa el mismo tablón de madera y deja visible el patio. */
+.build-toolbar {
+  position:absolute;
+  z-index:4;
+  bottom:max(8px,env(safe-area-inset-bottom));
+  left:max(8px,env(safe-area-inset-left));
+  right:max(8px,env(safe-area-inset-right));
+  padding:8px;
+  color:#f7e9b8;
+  background:#987951;
+  border:3px solid #d1bb89;
+  box-shadow:0 4px 0 #69604b;
+}
+.build-toolbar[hidden],.touch-controls[hidden] { display:none!important }
+.build-toolbar p { margin:0 0 6px;font-size:11px;line-height:1.35 }
+.build-actions { display:flex;gap:5px;flex-wrap:wrap;justify-content:center }
+.build-actions button { padding:8px 9px;min-height:36px;font-size:10px }
+.build-actions button:disabled { opacity:.55;cursor:not-allowed }
+
 .eyebrow {
   font-size:10px;
   letter-spacing:2px;
