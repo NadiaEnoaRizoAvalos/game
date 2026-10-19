@@ -129,10 +129,14 @@
     });
   }
 
-  function exportText() {
-    const envelope = active ? Game.saveFormat.snapshot() : stored;
+  function exportText(markExport = false) {
+    let envelope = active ? Game.saveFormat.snapshot() : stored;
     if (!envelope) throw new Error('No hay partida para exportar.');
     Game.saveFormat.validate(envelope);
+    if (markExport && envelope.data.guide) {
+      envelope = JSON.parse(JSON.stringify(envelope));
+      envelope.data.guide.exported = true; Game.guide.observe(envelope.data);
+    }
     return JSON.stringify(envelope, null, 2);
   }
   Game.saves = { init, save, auto, tick, start, continueGame, importText, recover,

@@ -19,7 +19,7 @@
   }
 
   /** Ejecuta las mecánicas durante deltaSeconds segundos; ignora la simulación en pausa. */
-  function update(deltaSeconds) {
+  function update(deltaSeconds, updateHud = true) {
     if (!Number.isFinite(deltaSeconds) || deltaSeconds < 0) return;
     if (Game.state.current.mode === 'playing' || Game.state.current.mode === 'menu') {
       Game.runtime.clock += deltaSeconds;
@@ -40,6 +40,7 @@
     Game.laundry.update(deltaSeconds);
     Game.automation.update(deltaSeconds);
     Game.family.update(deltaSeconds);
+    Game.guide.tick(deltaSeconds);
     Game.effects.updateParticles(deltaSeconds);
     if (Game.state.current.campaign) {
       if (Game.state.current.elapsed >= Game.state.current.daySeconds && !Game.state.current.dayEnded) {
@@ -50,7 +51,7 @@
     } else if (Game.engine.shouldFinish()) {
       Game.screens.finish();
     }
-    Game.hud.update();
+    if (updateHud) Game.hud.update();
   }
 
   /** Calcula el tiempo entre fotogramas, actualiza, dibuja y solicita el siguiente. */
@@ -62,9 +63,10 @@
     // Preserva el remanente. Un frame lento se integra con los mismos pasos que uno rápido.
     while (accumulator + 1e-9 >= step) {
       accumulator = Math.max(0, accumulator - step);
-      Game.engine.update(step);
+      Game.engine.update(step, false);
       if (lastTime === null) break;
     }
+    if (Game.state.current.mode === 'playing') Game.hud.update();
     Game.renderer.render();
     requestAnimationFrame(Game.engine.frame);
   }

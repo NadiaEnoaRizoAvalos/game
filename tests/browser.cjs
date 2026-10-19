@@ -37,6 +37,9 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     let page = await openPage(context);
     await page.locator('[data-action="continue"]').click();
     assert.match(await page.locator('#save-status').textContent(), /No hay partida/);
+    await page.locator('[data-action="guide"]').click();
+    assert.match(await page.locator('#panel').textContent(), /Guía del patio/);
+    await page.locator('[data-action="guide:back"]').click();
     await page.locator('[data-action="start"]').click();
     await page.waitForFunction(() => window.RainGame.saves.active);
     await page.evaluate(async () => {
@@ -70,7 +73,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const exported = path.join(artifacts, 'partida-exportada.json');
     await download.saveAs(exported);
     const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
-    assert.equal(imported.version, 7);
+    assert.equal(imported.version, 8);
     imported.data.resources.money = 456;
     const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
     page.once('dialog', dialog => dialog.dismiss());
@@ -324,6 +327,28 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     assert.equal(await page.evaluate(() => window.RainGame.state.current.basket.some(p => p.orderId === 'order-3' && p.cleanliness === 100)), true);
     await page.locator('[data-action="work:skills"]').click();
     await page.screenshot({ path: path.join(artifacts, 'habilidades-desktop.png'), fullPage: true });
+    await page.locator('[data-action="work"]').click();
+    await page.locator('[data-action="work:section:machines"]').click();
+    assert.equal(await page.evaluate(() => document.activeElement.id), 'work-machines');
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => window.RainGame.screens.pause());
+    await page.locator('[data-action="guide"]').click();
+    assert.ok(await page.evaluate(() => window.RainGame.state.current.guide.done.length >= 10));
+    await page.screenshot({ path: path.join(artifacts, 'guia-desktop.png'), fullPage: true });
+    await page.locator('[data-action="guide:hints"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.guide.hints), false);
+    await page.evaluate(() => window.RainGame.saves.save());
+    await page.reload(); await page.waitForFunction(() => !window.RainGame.saves.busy);
+    await page.locator('[data-action="continue"]').click(); await page.waitForFunction(() => window.RainGame.saves.active);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.guide.hints), false);
+    await page.locator('#sound').click();
+    await page.waitForFunction(() => window.RainGame.audio.context?.state === 'running');
+    assert.equal(await page.evaluate(() => localStorage.getItem('rain-game-sound')), 'on');
+    await page.reload(); await page.waitForFunction(() => !window.RainGame.saves.busy);
+    assert.equal(await page.locator('#sound').getAttribute('aria-pressed'), 'true');
+    await page.locator('#sound').click();
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.waitForFunction(() => window.RainGame.preferences.reducedMotion);
     // Capturas y controles por Pointer Events en orientaciones de celular.
     const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const phone = await openPage(mobile);
@@ -405,6 +430,12 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       await phone.screenshot({ path: path.join(artifacts, `${name}-automatizacion.png`) });
       await phone.locator('[data-action="work:skills"]').click();
       await phone.locator('[data-action="resume"]').click();
+      await phone.evaluate(() => window.RainGame.screens.pause());
+      await phone.locator('[data-action="guide"]').click();
+      await phone.locator('[data-action="guide:hints"]').scrollIntoViewIfNeeded();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-guia.png`) });
+      await phone.locator('[data-action="guide:hints"]').click();
+      await phone.locator('[data-action="guide:back"]').click();
       for (const kind of ['heat', 'wind', 'storm']) {
         await phone.evaluate(kind => { const g = window.RainGame; g.state.current.climate.segments[0].kind = kind; g.hud.update(); }, kind);
         const weatherPause = await phone.locator('#pause').boundingBox();

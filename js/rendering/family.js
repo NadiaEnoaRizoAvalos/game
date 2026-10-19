@@ -7,9 +7,9 @@
     const helper = m.id === 'jaqui' ? Game.state.current.workshop?.helper : null;
     if (helper && helper.scene !== Game.state.current.scene) return;
     const cfg = Game.config.family.members.find(c => c.id === m.id);
-    const step = Game.state.current.mode === 'playing' && (!helper?.active || helper.walking) ? Math.sin(Game.runtime.clock * 8) * 2 : 0;
+    const step = Game.state.current.mode === 'playing' && (!helper?.active || (helper.walking && !Game.preferences.reducedMotion)) ? Math.sin(Game.runtime.clock * 8) * 2 : 0;
     ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.scale(.72, .72);
-    if (helper?.stumble > 0) ctx.rotate(Math.sin(Game.runtime.clock * 16) * .18);
+    if (helper?.stumble > 0 && !Game.preferences.reducedMotion) ctx.rotate(Math.sin(Game.runtime.clock * 16) * .18);
     rect(-8, -11, 6, 13 + step, '#69604b'); rect(3, -11, 6, 13 - step, '#69604b');
     rect(-10, 1 + step, 8, 4, '#4a503b'); rect(3, 1 - step, 8, 4, '#4a503b');
     rect(-12, -37, 24, 27, cfg.color);

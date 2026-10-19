@@ -34,6 +34,7 @@
 <button class="primary" data-action="start">NUEVA PARTIDA <span>→</span>
 </button>
 <button class="secondary" data-action="help">INSTRUCCIONES</button>
+<button class="secondary" data-action="guide">GUÍA DEL PATIO</button>
 <button class="secondary" data-action="continue">CONTINUAR PARTIDA</button>
 <button class="secondary" data-action="saves">GUARDAR / IMPORTAR / EXPORTAR</button>
 </div>
@@ -97,6 +98,7 @@ ${Game.state.current.family ? '<button class="secondary" data-action="family">FA
 ${Game.state.current.house?.layoutVersion ? '<button class="secondary" data-action="house">CASA Y MUEBLES</button>' : ''}
 ${Game.state.current.yard ? '<button class="secondary" data-action="build">CONSTRUIR PATIO Y HERRAMIENTAS</button>' : ''}
 ${Game.state.current.workshop ? '<button class="secondary" data-action="work">AYUDA, MÁQUINAS Y HABILIDADES</button>' : ''}
+${Game.state.current.guide ? '<button class="secondary" data-action="guide">GUÍA Y PROGRESO</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -173,14 +175,17 @@ El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la p
 <p><b>Construcción:</b> en Pausa → Construir patio y herramientas elegí un objeto. Ubicalo con el mouse, tocando una casilla o con las flechas; confirmá para comprar. El tiempo está detenido mientras elegís. Los accesos y el patio original están protegidos. Podés mover o retirar construcciones nuevas cuando no tengan ropa tendida.</p>
 <button class="primary" data-action="closeHelp">¡ENTENDIDO!</button>`);
   }
+  function soundLabels() {
+    Game.dom.byId('sound').innerHTML = `♫ <span>Sonido ${Game.audio.enabled ? 'activado' : 'apagado'}</span>`;
+    Game.dom.byId('sound').setAttribute('aria-pressed', String(Game.audio.enabled));
+    Game.dom.byId('sound').setAttribute('aria-label', Game.audio.enabled ? 'Desactivar sonido' : 'Activar sonido');
+  }
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
   function init() {
     Game.dom.byId('sound').addEventListener('click', () => {
       Game.audio.init();
       Game.audio.enabled = !Game.audio.enabled;
-      Game.dom.byId('sound').innerHTML = `♫ <span>Sonido ${Game.audio.enabled ? 'activado' : 'apagado'}</span>`;
-      Game.dom.byId('sound').setAttribute('aria-pressed', String(Game.audio.enabled));
-      Game.dom.byId('sound').setAttribute('aria-label', Game.audio.enabled ? 'Desactivar sonido' : 'Activar sonido');
+      Game.audio.rememberPreference(); soundLabels();
       if (!Game.audio.enabled) {
         Game.audio.stop();
       } else {
@@ -203,6 +208,7 @@ El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la p
       Game.houseMenu.action(a);
       Game.buildMenu.action(a);
       Game.automationMenu.action(a);
+      Game.guideMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();
@@ -240,6 +246,7 @@ El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la p
     });
   }
   Game.screens = {
+    soundLabels,
     startCampaign, daySummary,
     loadLevel: loadLevel,
     menu: menu,

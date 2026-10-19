@@ -111,7 +111,7 @@
       const item = basket(s)[0];
       if (item?.orderId) item.cleanliness = Math.max(0, item.cleanliness - 5);
       h.message = '¡Uy! Jaqui se repone; la ropa sigue en su canasto.';
-      Game.hud.toast(h.message); break;
+      Game.hud.toast(h.message); Game.audio.play('stumble'); break;
     }
   }
   function update(dt) {

@@ -86,7 +86,7 @@
         if (b.type === 'washer') { p.cleanliness = 100; p.wetness = 100; } else p.wetness = 0;
       }
       Game.hud.toast(`${cfg().machines[b.type].name}: lote listo para descargar.`);
-      Game.audio.play('collect'); Game.saves?.auto('lote terminado');
+      Game.audio.play('machineReady'); Game.saves?.auto('lote terminado');
     }
     Game.helper.update(dt);
   }

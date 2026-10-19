@@ -4,6 +4,7 @@
   const Game = window.RainGame;
   /** Prepara la vista, conecta eventos y arranca un único bucle de animación. */
   function start() {
+    Game.audio.loadPreferences(); Game.screens.soundLabels();
     Game.camera.configureViewport();
     Game.screens.menu();
     Game.controls.init();

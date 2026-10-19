@@ -31,7 +31,7 @@ ${backups.map((key, i) => `<button class="secondary" data-action="backup-${i}">R
 
   function download() {
     try {
-      const text = Game.saves.exportText();
+      const text = Game.saves.exportText(true);
       const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
       const link = document.createElement('a');
       link.href = url;
@@ -40,6 +40,7 @@ ${backups.map((key, i) => `<button class="secondary" data-action="backup-${i}">R
       link.download = `antes-de-la-lluvia-dia-${JSON.parse(text).data.day}-${stamp}.json`;
       document.body.appendChild(link);
       link.click();
+      Game.guide.exported();
       link.remove();
       setTimeout(() => URL.revokeObjectURL(url), 30000);
       Game.saves.status('Copia preparada para descargar. Conservá el archivo JSON.');

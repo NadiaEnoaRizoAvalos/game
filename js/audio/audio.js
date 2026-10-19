@@ -10,6 +10,10 @@
     context: null,
     rain: null,
     rainGain: null,
+    rainTarget: null,
+    /** Solo preferencias pequeñas; fallar aquí nunca impide jugar. */
+    loadPreferences() { try { this.enabled = window.localStorage?.getItem('rain-game-sound') === 'on'; } catch { this.enabled = false; } },
+    rememberPreference() { try { window.localStorage?.setItem('rain-game-sound', this.enabled ? 'on' : 'off'); } catch { /* Preferencia opcional. */ } },
     /** Prepara el contexto de audio después de un gesto del jugador. */
     init() {
       if (!this.context) {
@@ -74,6 +78,7 @@
         this.rain.buffer = b;
         this.rain.loop = true;
         this.rainGain = a.createGain();
+        this.rainTarget = null;
         const f = a.createBiquadFilter();
         f.type = 'lowpass';
         f.frequency.value = 1600;
@@ -81,7 +86,10 @@
         this.rain.start();
       }
       if (this.rainGain) {
-        this.rainGain.gain.setTargetAtTime(this.enabled ? intensity * .045 : 0, this.context.currentTime, .1);
+        const target = this.enabled ? intensity * .045 : 0;
+        if (this.rainTarget === null || Math.abs(target - this.rainTarget) > .0001 || (target === 0 && this.rainTarget !== 0)) {
+          this.rainGain.gain.setTargetAtTime(target, this.context.currentTime, .1); this.rainTarget = target;
+        }
       }
     },
     /** Detiene la fuente de lluvia y libera sus referencias. */
@@ -90,10 +98,13 @@
         this.rain.stop();
         this.rain = null;
         this.rainGain = null;
+        this.rainTarget = null;
       }
     },
     /** Selecciona el sonido de feedback por su nombre. */
     play(name) {
+      if (name === 'machineReady') { this.tone(520, .13); setTimeout(() => this.tone(660, .15), 140); }
+      if (name === 'stumble') this.tone(220, .08, 'triangle', .03);
       if (name === 'collect') {
         this.tone(720);
       }

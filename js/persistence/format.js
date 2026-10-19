@@ -3,7 +3,7 @@
   'use strict';
   const Game = window.RainGame;
   const FORMAT = 'antes-de-la-lluvia';
-  const VERSION = 7;
+  const VERSION = 8;
   const MAX_BYTES = 5 * 1024 * 1024;
   const fields = ['day', 'daySeconds', 'elapsed', 'points', 'saved', 'nextGarmentId',
     'basketCapacity', 'player', 'rainIntensity', 'rainStarted', 'stormAnnounced',
@@ -38,7 +38,7 @@
   function validate(envelope) {
     safeTree(envelope);
     check(object(envelope) && envelope.format === FORMAT, 'archivo de otro juego');
-    check([1, 2, 3, 4, 5, 6, VERSION].includes(envelope.version), 'versión incompatible');
+    check([1, 2, 3, 4, 5, 6, 7, VERSION].includes(envelope.version), 'versión incompatible');
     check(typeof envelope.savedAt === 'string' && Number.isFinite(Date.parse(envelope.savedAt)), 'fecha');
     const s = envelope.data;
     check(object(s), 'faltan datos');
@@ -100,6 +100,7 @@
     if (envelope.version >= 3) Game.climateSchema.validate(s, check, number, object);
     if (envelope.version >= 4) Game.familySchema.validate(s, check, number, object);
     if (envelope.version >= 7) Game.automationSchema.validate(s, check, number, object);
+    if (envelope.version >= 8) Game.guide.validate(s, check, number, object);
     if (envelope.version >= 6) {
       Game.yardSchema.validate(s, check, number, object);
       for (const p of s.items) if (p.slot !== null) check(!!Game.yard.position(p.slot, s), 'soga inexistente o retirada');
@@ -114,6 +115,7 @@
 
   function snapshot(state = Game.state.current) {
     check(state?.campaign, 'no hay una jornada activa');
+    Game.guide.observe(state);
     const data = {};
     for (const key of fields) data[key] = state[key];
     data.laundry = state.laundry;
@@ -123,6 +125,7 @@
     data.scene = state.scene;
     data.yard = state.yard;
     data.workshop = state.workshop;
+    data.guide = state.guide;
     data.items = state.items.map(({ id, slot, type, wetness, status, orderId, cleanliness, washProgress, machineId }) => ({ id, slot, type, wetness, status,
       ...(orderId ? { orderId, cleanliness, washProgress } : {}), ...(status === 'machine' ? { machineId } : {}) }));
     const envelope = { format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), data };
@@ -153,6 +156,8 @@
     else { delete state.house.layoutVersion; Game.house.initialize(state); }
     if (envelope.version >= 7) state.workshop = data.workshop;
     else Game.automation.initialize(state);
+    if (envelope.version >= 8) state.guide = data.guide;
+    else Game.guide.initialize(state);
     Game.helper.invalidate();
     if (envelope.version === 1 && !Game.player.canStand(state.player.x, state.player.y, true, { scene: 'yard' })) {
       state.player.x = Game.config.laundry.station.x;

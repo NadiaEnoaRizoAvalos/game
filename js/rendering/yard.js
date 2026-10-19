@@ -33,7 +33,7 @@
       rect(x + 17, y + 12, 26, 21, '#69604b'); rect(x + 21, y + 15, 18, 15, '#7b9a8b');
       rect(x + 11, y + 8, 4, 3, machine?.remaining > 0 ? '#7e9a5a' : '#b88b52');
       if (machine?.remaining > 0) {
-        const turn = Math.floor((spec.seconds - machine.remaining) * 4) % 2;
+        const turn = Game.preferences.reducedMotion ? 0 : Math.floor((spec.seconds - machine.remaining) * 4) % 2;
         rect(x + 24 + turn * 6, y + 18, 5, 7, '#e8d7ae');
         rect(x + 4, y - 3, 52 * (1 - machine.remaining / spec.seconds), 3, '#f2d48b');
       }
