@@ -29,7 +29,7 @@
     Game.state.current.mode = 'menu';
     Game.hud.showPanel(`<div class="eyebrow">EL PATIO TE ESPERA</div>
 <h2>Se viene la lluvia.</h2>
-<p>Recogé la ropa, llená el canasto y volvé a casa.<br>Algunas prendas valen más. ¡Elegí bien!</p>
+<p>Cuidá la ropa del patio y atendé los pedidos del barrio.<br>Lavá, tendé y hacé crecer el hogar de María Carmen.</p>
 <div class="panel-actions">
 <button class="primary" data-action="start">NUEVA PARTIDA <span>→</span>
 </button>
@@ -93,6 +93,7 @@ ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">
 ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">PEDIDOS E INSUMOS</button>' : ''}
 ${Game.state.current.climate ? '<button class="secondary" data-action="forecast">PRONÓSTICO Y REPUTACIÓN</button>' : ''}
 ${Game.state.current.family ? '<button class="secondary" data-action="family">FAMILIA Y ECONOMÍA</button>' : ''}
+${Game.state.current.house?.layoutVersion ? '<button class="secondary" data-action="house">CASA Y MUEBLES</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -162,6 +163,9 @@ Caminá al lavadero a la derecha de la casa y mantené Espacio/acción para lava
 Llevá la ropa limpia a un lugar libre de las sogas y presioná acción para tender; soltá entre prendas.
 Esperá humedad 0%, recogé y guardá en casa. Entregá desde Pedidos para cobrar.<br>
 La ropa familiar que ya estaba colgada conserva los puntos del juego original; recogela para liberar sogas.</p>
+<p><b>Casa:</b> junto a la puerta, presioná acción para entrar. Caminá hasta los muebles y José o Jaqui para interactuar.
+El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la puerta exterior. En Pausa → Casa y muebles podés comprar materiales, habitaciones y muebles.</p>
+<p><b>Familia:</b> en Pausa → Familia y economía revisá gastos aplazables y cuentas. Si resolviste los encargos que vencen hoy, podés sentarte a tomar mates y consultar el resumen; los pedidos futuros pueden esperar.</p>
 <button class="primary" data-action="closeHelp">¡ENTENDIDO!</button>`);
   }
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
@@ -191,6 +195,7 @@ La ropa familiar que ya estaba colgada conserva los puntos del juego original; r
       Game.ordersMenu.action(a);
       Game.climateMenu.action(a);
       Game.familyMenu.action(a);
+      Game.houseMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

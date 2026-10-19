@@ -52,10 +52,11 @@
     Game.dom.byId('capacity').textContent = Game.collection.usedSpace();
     Game.dom.byId('capacity-bar').style.width = Game.collection.usedSpace() / Game.collection.capacity() * 100 + '%';
     Game.dom.byId('hint').textContent = contextualHint(gameState);
+    const homeAction = Game.house.context();
     const action = Game.laundry.context();
     const touch = document.querySelectorAll('[data-key="collect"]')[0];
     if (touch) {
-      const name = action?.kind === 'wash' ? 'LAVAR' : action?.kind === 'hang' ? 'TENDER' : 'RECOGER';
+      const name = homeAction?.label || (action?.kind === 'wash' ? 'LAVAR' : action?.kind === 'hang' ? 'TENDER' : 'RECOGER');
       if (touch.dataset.label !== name) {
         touch.dataset.label = name;
         touch.innerHTML = `<span class="collect-icon" aria-hidden="true">▧</span>${name}`;
@@ -69,6 +70,9 @@
     if (gameState.mode === 'menu') {
       return '● Un cielo tranquilo… por ahora.';
     }
+    const homeAction = Game.house.context();
+    if (homeAction && homeAction.kind !== 'wash') return `Acción: ${homeAction.label.toLowerCase()}${homeAction.furniture ? ' · ' + homeAction.furniture.name : ''}`;
+    if (gameState.scene === 'house' && homeAction?.kind !== 'wash') return 'Casa: acercate a muebles o familiares para interactuar. Pausa: casa y muebles.';
     const action = Game.laundry.context();
     if (action?.kind === 'wash') return action.item ? `Mantené acción para lavar ${action.item.name} · Agua ${gameState.resources.water} · Jabón ${gameState.resources.soap}` : 'Lavadero: traé prendas sucias en el canasto. Pedidos está en Pausa.';
     if (action?.kind === 'hang') return `Acción: tender ${action.item.name} en este lugar libre.`;

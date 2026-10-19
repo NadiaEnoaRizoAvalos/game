@@ -3,7 +3,7 @@
   'use strict';
   const Game = window.RainGame;
   const FORMAT = 'antes-de-la-lluvia';
-  const VERSION = 4;
+  const VERSION = 5;
   const MAX_BYTES = 5 * 1024 * 1024;
   const fields = ['day', 'daySeconds', 'elapsed', 'points', 'saved', 'nextGarmentId',
     'basketCapacity', 'player', 'rainIntensity', 'rainStarted', 'stormAnnounced',
@@ -38,7 +38,7 @@
   function validate(envelope) {
     safeTree(envelope);
     check(object(envelope) && envelope.format === FORMAT, 'archivo de otro juego');
-    check([1, 2, 3, VERSION].includes(envelope.version), 'versión incompatible');
+    check([1, 2, 3, 4, VERSION].includes(envelope.version), 'versión incompatible');
     check(typeof envelope.savedAt === 'string' && Number.isFinite(Date.parse(envelope.savedAt)), 'fecha');
     const s = envelope.data;
     check(object(s), 'faltan datos');
@@ -55,7 +55,7 @@
     check(object(s.player), 'personaje');
     const bounds = Game.config.settings;
     check(number(s.player.x, bounds.minX, bounds.maxX) && number(s.player.y, bounds.minY, bounds.maxY) &&
-      Game.player.canStand(s.player.x, s.player.y, envelope.version >= 2), 'posición del personaje');
+      (envelope.version >= 5 && s.scene === 'house' ? true : Game.player.canStand(s.player.x, s.player.y, envelope.version >= 2, { scene: 'yard' })), 'posición del personaje');
     check(number(s.player.facingX, -1, 1) && number(s.player.facingY, -1, 1) &&
       typeof s.player.walking === 'boolean', 'orientación');
     check(number(s.rainIntensity, 0, 1), 'lluvia');
@@ -99,6 +99,10 @@
     if (envelope.version >= 2) Game.laundrySchema.validate(s, check, number, object);
     if (envelope.version >= 3) Game.climateSchema.validate(s, check, number, object);
     if (envelope.version >= 4) Game.familySchema.validate(s, check, number, object);
+    if (envelope.version >= 5) {
+      Game.houseSchema.validate(s, check, number, object);
+      if (s.scene === 'house') check(Game.house.canStand(s.player.x, s.player.y, s), 'posición interior del personaje');
+    }
     return envelope;
   }
 
@@ -110,6 +114,7 @@
     data.climate = state.climate;
     data.reputation = state.reputation;
     data.family = state.family;
+    data.scene = state.scene;
     data.items = state.items.map(({ id, slot, type, wetness, status, orderId, cleanliness, washProgress }) => ({ id, slot, type, wetness, status,
       ...(orderId ? { orderId, cleanliness, washProgress } : {}) }));
     const envelope = { format: FORMAT, version: VERSION, savedAt: new Date().toISOString(), data };
@@ -134,7 +139,9 @@
     else { Game.climate.initialize(state); Game.reputation.initialize(state); }
     if (envelope.version >= 4) state.family = data.family;
     else Game.family.initialize(state);
-    if (envelope.version === 1 && !Game.player.canStand(state.player.x, state.player.y, true)) {
+    if (envelope.version >= 5) state.scene = data.scene;
+    else { delete state.house.layoutVersion; Game.house.initialize(state); }
+    if (envelope.version === 1 && !Game.player.canStand(state.player.x, state.player.y, true, { scene: 'yard' })) {
       state.player.x = Game.config.laundry.station.x;
       state.player.y = Game.config.laundry.station.y + 12;
     }

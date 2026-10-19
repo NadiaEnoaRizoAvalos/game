@@ -10,6 +10,10 @@
     return order && item.cleanliness < order.requiredQuality;
   }
   function nearStation() {
+    if (current().scene === 'house') {
+      const a = Game.house.context();
+      return a?.kind === 'wash';
+    }
     const p = current().player;
     const station = cfg().station;
     return Math.hypot(p.x - station.x, p.y - station.y) <= station.radius;
@@ -18,7 +22,7 @@
   /** Carga solo lo que cabe; el resto queda a resguardo en la casa. */
   function load(orderId) {
     const s = current();
-    if (!Game.orders.atDoor()) return 'Acercate a la puerta para cargar las prendas.';
+    if (!Game.orders.atDoor() && !Game.house.atStorage()) return 'Acercate a la puerta o al estante interior para cargar las prendas.';
     const order = s.orders.find(o => o.id === orderId && o.state === 'accepted');
     if (!order) return 'El pedido no está aceptado.';
     let loaded = 0;
@@ -62,6 +66,7 @@
   }
 
   function freeSlot() {
+    if (current().scene === 'house') return null;
     const s = current();
     let nearest = null;
     for (let slot = 0; slot < cfg().slots; slot++) {
@@ -75,6 +80,7 @@
 
   function hang(item, slot) {
     const s = current();
+    if (s.scene === 'house') return false;
     if (!s.basket.includes(item) || !item.orderId || needsWash(item) || !Number.isInteger(slot) || slot < 0 || slot >= cfg().slots) return false;
     if (s.items.some(p => p.status === 'hanging' && p.slot === slot)) return false;
     const position = Game.state.garmentPosition(slot, cfg().slots);

@@ -74,9 +74,9 @@
     }
     for (const m of s.family.members) {
       if (!present(m.id, s)) continue;
-      const home = Game.config.family.members.find(c => c.id === m.id);
+      const home = s.house.layoutVersion ? (m.id === 'jose' ? { x: 510, y: 240 } : { x: 290, y: 300 }) : Game.config.family.members.find(c => c.id === m.id);
       const x = m.x + m.direction * dt * 12;
-      if (Math.abs(x - home.x) > 24 || !Game.player.canStand(x, m.y, true)) m.direction *= -1;
+      if (Math.abs(x - home.x) > 24 || !(s.house.layoutVersion ? Game.house.canStand(x, m.y, s) : Game.player.canStand(x, m.y, true))) m.direction *= -1;
       else m.x = x;
     }
   }

@@ -44,6 +44,7 @@
     Game.climate.initialize(state);
     Game.reputation.initialize(state);
     Game.family.initialize(state);
+    Game.house.initialize(state);
     return state;
   }
 

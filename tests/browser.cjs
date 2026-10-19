@@ -44,7 +44,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       g.screens.pause();
       g.collection.completePickup(g.state.current.items[0]);
       g.state.current.resources.money = 123;
-      g.state.current.house.rooms.push({ id: 'future-kitchen' });
+      g.state.current.house.legacy.rooms.push({ id: 'future-kitchen' });
       await g.saves.save();
     });
     const stored = await page.evaluate(async () => (await window.RainGame.database.read()).data);
@@ -60,7 +60,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       const g = window.RainGame;
       g.screens.pause();
       const s = g.state.current;
-      return [s.resources.money, s.basket.length, s.basket[0] === s.items.find(p => p.id === s.basket[0].id), s.house.rooms[0].id];
+      return [s.resources.money, s.basket.length, s.basket[0] === s.items.find(p => p.id === s.basket[0].id), s.house.legacy.rooms[0].id];
     }), [123, 1, true, 'future-kitchen']);
     await page.locator('[data-action="saves"]').click();
     const downloading = page.waitForEvent('download');
@@ -70,7 +70,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const exported = path.join(artifacts, 'partida-exportada.json');
     await download.saveAs(exported);
     const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
-    assert.equal(imported.version, 4);
+    assert.equal(imported.version, 5);
     imported.data.resources.money = 456;
     const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
     page.once('dialog', dialog => dialog.dismiss());
@@ -188,6 +188,57 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     await page.waitForFunction(() => window.RainGame.saves.active);
     assert.equal(await page.evaluate(() => window.RainGame.state.current.family.events[0].paid), true);
     assert.equal(await page.evaluate(() => window.RainGame.state.current.family.restedDay), 1);
+    // Casa explorable: entrada por acción, movimiento, estante y compras por menú.
+    await page.evaluate(() => {
+      const g = window.RainGame;
+      g.screens.resume(); Object.assign(g.state.current.player, g.config.settings.door);
+    });
+    await page.keyboard.press('Space');
+    await page.waitForFunction(() => window.RainGame.state.current.scene === 'house');
+    await page.keyboard.down('ArrowRight');
+    await page.waitForFunction(() => window.RainGame.state.current.player.x > 250);
+    await page.keyboard.up('ArrowRight');
+    await page.evaluate(() => Object.assign(window.RainGame.state.current.player, { x: 460, y: 400 }));
+    await page.keyboard.press('Space');
+    await page.locator('[data-action="house:unload"]').waitFor();
+    await page.screenshot({ path: path.join(artifacts, 'casa-almacenamiento.png'), fullPage: true });
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => {
+      const g = window.RainGame;
+      g.state.current.resources.money = 300; // Presupuesto de prueba para revisar compras.
+      g.screens.pause();
+    });
+    await page.locator('[data-action="house"]').click();
+    await page.locator('[data-action="house:materials"]').click();
+    await page.locator('[data-action="house:room:maria"]').click();
+    await page.locator('[data-action="house:furniture:maria-bed"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.money), 219);
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => { const g = window.RainGame; Object.assign(g.state.current.player, { x: 685, y: 230 }); g.hud.update(); g.renderer.render(); });
+    await page.screenshot({ path: path.join(artifacts, 'casa-interior-desktop.png'), fullPage: true });
+    await page.evaluate(() => window.RainGame.saves.save());
+    await context.close();
+    context = await chromium.launchPersistentContext(profile, options);
+    page = await openPage(context);
+    await page.locator('[data-action="continue"]').click();
+    await page.waitForFunction(() => window.RainGame.saves.active);
+    assert.deepEqual(await page.evaluate(() => {
+      const s = window.RainGame.state.current;
+      return [s.scene, s.player.x, s.house.rooms.some(r => r.id === 'maria'), s.house.furniture.some(f => f.id === 'maria-bed')];
+    }), ['house', 685, true, true]);
+    await page.evaluate(() => { window.RainGame.screens.resume(); window.RainGame.screens.pause(); });
+    await page.locator('[data-action="saves"]').click();
+    const interiorDownload = page.waitForEvent('download');
+    await page.locator('[data-action="export"]').click();
+    const interiorFile = path.join(artifacts, 'partida-interior.json');
+    await (await interiorDownload).saveAs(interiorFile);
+    page.once('dialog', dialog => dialog.accept());
+    await page.locator('#import-file').setInputFiles(interiorFile);
+    await page.waitForFunction(() => !window.RainGame.saves.busy);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.scene), 'house');
+    await page.evaluate(() => { const g = window.RainGame; g.screens.resume(); Object.assign(g.state.current.player, g.config.house.door); });
+    await page.keyboard.press('Space');
+    await page.waitForFunction(() => window.RainGame.state.current.scene === 'yard');
     // Capturas y controles por Pointer Events en orientaciones de celular.
     const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const phone = await openPage(mobile);
@@ -196,7 +247,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const touch = await mobile.newCDPSession(phone);
     for (const [width, height, name] of [[390, 844, 'portrait'], [844, 390, 'landscape'], [320, 568, 'small']]) {
       await phone.setViewportSize({ width, height });
-      await phone.evaluate(() => { window.RainGame.camera.configureViewport(); window.RainGame.screens.resume(); });
+      await phone.evaluate(() => { const g = window.RainGame; g.camera.configureViewport(); g.screens.resume(); Object.assign(g.state.current.player, { x: 500, y: 300 }); });
       const joystick = phone.locator('#joystick');
       const pauseBox = await phone.locator('#pause').boundingBox();
       assert.ok(pauseBox && pauseBox.y < 40, 'La pausa no debe superponerse a la ayuda');
@@ -230,6 +281,18 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       await phone.locator('[data-action="resume"]').scrollIntoViewIfNeeded();
       await phone.screenshot({ path: path.join(artifacts, `${name}-reputation.png`) });
       await phone.locator('[data-action="resume"]').click();
+      await phone.evaluate(() => { const g = window.RainGame; Object.assign(g.state.current.player, g.config.settings.door); g.hud.update(); });
+      await phone.locator('[data-key="collect"]').tap();
+      await phone.waitForFunction(() => window.RainGame.state.current.scene === 'house');
+      await phone.screenshot({ path: path.join(artifacts, `${name}-casa.png`) });
+      await phone.evaluate(() => { const g = window.RainGame; g.screens.pause(); });
+      await phone.locator('[data-action="house"]').click();
+      await phone.locator('[data-action="house:furniture:basin"]').scrollIntoViewIfNeeded();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-muebles.png`) });
+      await phone.locator('[data-action="resume"]').click();
+      await phone.evaluate(() => { const g = window.RainGame; Object.assign(g.state.current.player, g.config.house.door); g.hud.update(); });
+      await phone.locator('[data-key="collect"]').tap();
+      await phone.waitForFunction(() => window.RainGame.state.current.scene === 'yard');
       // Todos los nombres de clima deben mantener accesible la pausa en el HUD.
       await phone.evaluate(() => window.RainGame.screens.pause());
       await phone.locator('[data-action="family"]').click();

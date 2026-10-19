@@ -53,6 +53,7 @@
     Game.audio.weather(s.rainIntensity);
     for (const p of s.items) {
       if (!['hanging', 'basket'].includes(p.status)) continue;
+      if (p.status === 'basket' && s.scene === 'house') continue;
       if (s.rainIntensity > 0) p.wetness = Game.utils.clamp(p.wetness + dt * 5 * s.rainIntensity / p.resistance, 0, 100);
       if (!p.orderId) continue;
       const qualityBefore = p.cleanliness;

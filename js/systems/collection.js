@@ -18,6 +18,7 @@
 
   /** Busca la prenda colgada más cercana dentro del alcance de recogida. */
   function nearest() {
+    if (Game.state.current.scene === 'house') return null;
     let best = null;
     let dist = Infinity;
     for (const p of Game.state.current.items) {
@@ -41,6 +42,7 @@
     const family = Game.state.current.basket.filter(p => !p.orderId);
     const points = family.reduce((s, p) => s + Game.collection.scoreFor(p), 0);
     Game.state.current.depositAnim = {
+      scene: Game.state.current.scene,
       time: 0,
       duration: 1.1,
       points,
@@ -92,11 +94,12 @@
   /** Procesa descarga, objetivo y progreso de recogida; soltar cancela el progreso. */
   function updateCollection(deltaSeconds) {
     const gameState = Game.state.current;
-    const atDoor = Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius;
+    const atDoor = gameState.scene !== 'house' && Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius;
     if (gameState.laundry && !atDoor) gameState.laundry.leaveDoor = false;
     if (atDoor && !gameState.laundry?.leaveDoor) {
       Game.collection.deposit();
     }
+    if (Game.house?.interact()) return;
     if (Game.laundry?.interact(deltaSeconds)) return;
     const target = Game.collection.nearest();
     if (target !== gameState.target) {

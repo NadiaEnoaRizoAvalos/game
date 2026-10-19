@@ -25,6 +25,11 @@
       y: 0
     };
     context.setTransform(Game.camera.viewport.dpr * camera.scale, 0, 0, Game.camera.viewport.dpr * camera.scale, -camera.x * Game.camera.viewport.dpr * camera.scale, -camera.y * Game.camera.viewport.dpr * camera.scale);
+    if (gameState.scene === 'house') {
+      Game.houseDrawing.draw();
+      context.restore();
+      return;
+    }
     rect(0, 0, w, h, '#b2c88c');
     // Grass texture and wide paths keep all three clotheslines connected.
     for (let i = 0; i < 470; i++) {
@@ -124,7 +129,7 @@
       draw: () => Game.world.tree(t.x, t.y, t.z)
     }))];
     if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
-    if (gameState.family) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
+    if (gameState.family && !gameState.house.layoutVersion) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
     Game.familyDrawing.mate();
     if (target) {

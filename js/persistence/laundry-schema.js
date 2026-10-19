@@ -23,7 +23,7 @@
       check(object(entry) && typeof entry.id === 'string' && !entries.has(entry.id), 'movimiento duplicado');
       entries.add(entry.id);
       check(number(entry.day, 1, s.day, true) && number(entry.amount, -1e9, 1e9), 'movimiento económico');
-      check(['delivery', 'supplies', ...(s.family ? ['family'] : [])].includes(entry.kind), 'tipo de movimiento');
+      check(['delivery', 'supplies', ...(s.family ? ['family'] : []), ...(s.house.layoutVersion ? ['house'] : [])].includes(entry.kind), 'tipo de movimiento');
       if (entry.kind === 'delivery') {
         check(typeof entry.orderId === 'string' && !payments.has(entry.orderId) && entry.id === `delivery-${entry.orderId}` && entry.amount > 0, 'cobro');
         payments.set(entry.orderId, entry);

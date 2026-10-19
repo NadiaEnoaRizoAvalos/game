@@ -177,6 +177,7 @@
     }
     const a = gameState.depositAnim;
     if (a) {
+      const destination = a.scene === 'house' ? { x: a.x, y: a.y - 30 } : { x: 174, y: 179 };
       for (let i = 0; i < a.items.length; i++) {
         const t = Game.utils.clamp((a.time - i * .07) / .6, 0, 1);
         if (t >= 1) {
@@ -184,14 +185,14 @@
         }
         context.globalAlpha = 1 - t * .6;
         Game.sprites.drawGarment(a.items[i], {
-          x: a.x + 18 + (174 - a.x - 18) * t,
-          y: a.y - 18 + (179 - a.y + 18) * t - Math.sin(t * Math.PI) * 19,
+          x: a.x + 18 + (destination.x - a.x - 18) * t,
+          y: a.y - 18 + (destination.y - a.y + 18) * t - Math.sin(t * Math.PI) * 19,
           scale: .4 * (1 - t * .7),
           angle: -t * .25
         });
         context.globalAlpha = 1;
       }
-      label(a.orderOnly ? 'A resguardo' : '+' + a.points + ' puntos', 174, 157 - a.time * 20, 13, '#fcdf9b');
+      label(a.orderOnly ? 'A resguardo' : '+' + a.points + ' puntos', destination.x, destination.y - 22 - a.time * 20, 13, '#fcdf9b');
     }
   }
   Game.sprites = {

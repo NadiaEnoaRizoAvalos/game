@@ -77,6 +77,7 @@
 
   function atDoor() {
     const s = current();
+    if (s.scene === 'house') return false;
     const door = Game.config.settings.door;
     return Math.hypot(s.player.x - door.x, s.player.y - door.y) < door.radius;
   }
