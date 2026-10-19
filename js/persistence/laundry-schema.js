@@ -23,7 +23,7 @@
       check(object(entry) && typeof entry.id === 'string' && !entries.has(entry.id), 'movimiento duplicado');
       entries.add(entry.id);
       check(number(entry.day, 1, s.day, true) && number(entry.amount, -1e9, 1e9), 'movimiento económico');
-      check(['delivery', 'supplies', ...(s.family ? ['family'] : []), ...(s.house.layoutVersion ? ['house'] : []), ...(s.yard ? ['yard'] : [])].includes(entry.kind), 'tipo de movimiento');
+      check(['delivery', 'supplies', ...(s.family ? ['family'] : []), ...(s.house.layoutVersion ? ['house'] : []), ...(s.yard ? ['yard'] : []), ...(s.workshop ? ['automation'] : [])].includes(entry.kind), 'tipo de movimiento');
       if (entry.kind === 'delivery') {
         check(typeof entry.orderId === 'string' && !payments.has(entry.orderId) && entry.id === `delivery-${entry.orderId}` && entry.amount > 0, 'cobro');
         payments.set(entry.orderId, entry);
@@ -62,12 +62,12 @@
       check(c.completed === deliveries.length && c.onTime === deliveries.filter(o => o.deliveredDay <= o.dueDay).length, 'historial de cliente inconsistente');
     }
     for (const p of s.items) {
-      if (!p.orderId) { check(['hanging', 'basket', 'saved'].includes(p.status), 'ropa familiar'); continue; }
+      if (!p.orderId) { check(['hanging', 'basket', 'saved', ...(s.workshop ? ['helper'] : [])].includes(p.status), 'ropa familiar'); continue; }
       const order = s.orders.find(o => o.id === p.orderId);
       check(order && ['accepted', 'delivered'].includes(order.state), 'prenda huérfana');
-      check(['stored', 'basket', 'hanging', 'delivered'].includes(p.status), 'ubicación de pedido');
+      check(['stored', 'basket', 'hanging', 'delivered', ...(s.workshop ? ['helper', 'machine'] : [])].includes(p.status), 'ubicación de pedido');
       check(number(p.cleanliness, 0, 100) && number(p.washProgress, 0, cfg.wash.seconds + Game.config.garments[p.type].size), 'lavado');
-      check(p.washProgress === 0 || (['stored', 'basket'].includes(p.status) && p.cleanliness < order.requiredQuality), 'lavado contradictorio');
+      check(p.washProgress === 0 || (['stored', 'basket', ...(s.workshop ? ['helper'] : [])].includes(p.status) && p.cleanliness < order.requiredQuality), 'lavado contradictorio');
       // El polvo puede ensuciar una prenda ya tendida: se conserva para volver a lavarla.
     }
   }

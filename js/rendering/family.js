@@ -4,9 +4,12 @@
   const { rect, label } = Game.drawing;
   function member(m) {
     if (!Game.family.present(m.id)) return;
+    const helper = m.id === 'jaqui' ? Game.state.current.workshop?.helper : null;
+    if (helper && helper.scene !== Game.state.current.scene) return;
     const cfg = Game.config.family.members.find(c => c.id === m.id);
-    const step = Game.state.current.mode === 'playing' ? Math.sin(Game.runtime.clock * 8) * 2 : 0;
+    const step = Game.state.current.mode === 'playing' && (!helper?.active || helper.walking) ? Math.sin(Game.runtime.clock * 8) * 2 : 0;
     ctx.save(); ctx.translate(Math.round(m.x), Math.round(m.y)); ctx.scale(.72, .72);
+    if (helper?.stumble > 0) ctx.rotate(Math.sin(Game.runtime.clock * 16) * .18);
     rect(-8, -11, 6, 13 + step, '#69604b'); rect(3, -11, 6, 13 - step, '#69604b');
     rect(-10, 1 + step, 8, 4, '#4a503b'); rect(3, 1 - step, 8, 4, '#4a503b');
     rect(-12, -37, 24, 27, cfg.color);
@@ -14,7 +17,8 @@
     rect(-10, -57, 20, 20, '#e7bd95'); rect(-12, -60, 24, 8, '#69604b');
     if (m.id === 'jaqui') { rect(-15, -55, 5, 25, '#69604b'); rect(11, -55, 5, 25, '#69604b'); }
     rect(-6, -48, 2, 2, '#4b4b3b'); rect(4, -48, 2, 2, '#4b4b3b'); rect(-2, -41, 5, 2, '#b87769');
-    ctx.restore(); label(cfg.name, m.x, m.y + 18, 10, '#3c513e');
+    if (helper && Game.helper.used() > 0) Game.sprites.basket(24, -10, Game.helper.used() / Game.helper.capacity());
+    ctx.restore(); label(helper?.stumble > 0 ? '¡Uy, Jaqui!' : cfg.name, m.x, m.y + 18, 10, '#3c513e');
   }
   function mate() {
     const s = Game.state.current;

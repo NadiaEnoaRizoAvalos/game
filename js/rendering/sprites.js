@@ -16,7 +16,7 @@
   /** Dibuja una prenda y sus broches; pose permite animarla fuera de la soga. */
   function drawGarment(garment, pose = null) {
     const picking = !pose && Game.state.current.target === garment && Game.state.current.progress > 0;
-    const q = picking ? Game.utils.clamp(Game.state.current.progress / garment.time, 0, 1) : 0;
+    const q = picking ? Game.utils.clamp(Game.state.current.progress / Game.collection.pickupTime(garment), 0, 1) : 0;
     const sway = Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.weather().wind * (1 + Game.state.current.rainIntensity * .6);
     const x = pose ? pose.x : garment.x + sway;
     const y = pose ? pose.y : garment.y - 52 + Math.sin(q * Math.PI) * 4;

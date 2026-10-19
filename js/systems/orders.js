@@ -36,7 +36,7 @@
       const habitual = state.reputation ? history.onTime >= 3 && history.trust >= 60 : history.completed >= 3;
       state.orders.push({ id: `order-${state.laundry.nextOrderId++}`, clientId: client.id,
         offeredDay: state.day, dueDay: state.day + client.due, type: client.type,
-        count: client.count, price: client.price + (habitual ? 5 : 0),
+        count: client.count, price: client.price + (habitual ? 5 : 0) + Game.skills.level('maria', 'management', state),
         requiredQuality: client.quality, urgent: client.due === 0,
         state: 'available', acceptedDay: null, deliveredDay: null, paid: 0 });
       generated++;
@@ -99,6 +99,7 @@
     client.completed++;
     if (s.day <= order.dueDay) client.onTime++;
     Game.reputation.review(s, order);
+    Game.skills.gain('maria', ['management', 'organization'], s);
     Game.audio.play('deposit');
     Game.saves?.auto('entrega');
     return null;

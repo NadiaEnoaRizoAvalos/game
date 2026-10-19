@@ -55,7 +55,7 @@
     const f = furniture(s).filter(f => near(s.player, f.x + f.w / 2, f.y + f.h + 12, 45))
       .sort((a, b) => Math.hypot(s.player.x - a.x - a.w / 2, s.player.y - a.y - a.h) - Math.hypot(s.player.x - b.x - b.w / 2, s.player.y - b.y - b.h))[0];
     if (f) return { kind: f.action, label: { mate: 'MATES', rest: 'DESCANSAR', storage: 'PRENDAS', family: 'FAMILIA', wash: 'LAVAR', look: 'MIRAR' }[f.action], furniture: f };
-    const member = s.family.members.find(m => Game.family.present(m.id) && near(s.player, m.x, m.y, 32));
+    const member = s.family.members.find(m => Game.family.present(m.id) && !(m.id === 'jaqui' && s.workshop?.helper.scene === 'yard') && near(s.player, m.x, m.y, 32));
     return member ? { kind: 'talk', label: 'HABLAR', member } : null;
   }
   function transition(scene) {
@@ -90,6 +90,7 @@
     else {
       Game.screens.pause();
       if (a.kind === 'storage') Game.houseMenu.storage();
+      else if (a.kind === 'machine' || a.kind === 'helper') Game.automationMenu.show();
       else if (a.kind === 'mate' || a.kind === 'rest') Game.houseMenu.rest();
       else if (a.kind === 'talk') Game.familyMenu.show(Game.family.talk(a.member.id));
       else if (a.kind === 'family') Game.familyMenu.show();
@@ -108,7 +109,7 @@
     if (s.resources.wood < item.wood) return 'Falta madera. Podés comprar un paquete de materiales.';
     if (!room && s.scene === 'house' && (hits(s.player.x, s.player.y, item) || s.family.members.some(m => hits(m.x, m.y, item)))) return 'Dejá libre el lugar del mueble antes de instalarlo.';
     if (!Game.economy.transact(`house-${kind}-${id}`, -item.price, 'house', null, s, Game.config.family.reserve)) return 'No alcanza el saldo; reservamos $12 para insumos.';
-    s.resources.wood -= item.wood; owned.push({ id });
+    s.resources.wood -= item.wood; owned.push({ id }); Game.helper.invalidate();
     Game.saves?.auto('mejora de la casa');
     return null;
   }

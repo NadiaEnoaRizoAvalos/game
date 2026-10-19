@@ -73,6 +73,7 @@
       if (s.family.mate === 0) { s.family.restedDay = s.day; Game.calendar.endDay(); }
     }
     for (const m of s.family.members) {
+      if (m.id === 'jaqui' && s.workshop?.helper.active) continue;
       if (!present(m.id, s)) continue;
       const home = s.house.layoutVersion ? (m.id === 'jose' ? { x: 510, y: 240 } : { x: 290, y: 300 }) : Game.config.family.members.find(c => c.id === m.id);
       const x = m.x + m.direction * dt * 12;

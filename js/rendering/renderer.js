@@ -132,13 +132,14 @@
     if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
     layers.push(...Game.yardDrawing.layers());
     if (gameState.family && !gameState.house.layoutVersion) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
+    if (gameState.workshop?.helper.scene === 'yard') { const m = gameState.family.members.find(m => m.id === 'jaqui'); layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) }); }
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
     Game.familyDrawing.mate();
     if (target) {
       const x = target.x;
       const y = target.y + 27;
       rect(x - 30, y, 60, 6, '#697956');
-      rect(x - 29, y + 1, 58 * Math.min(1, gameState.progress / target.time), 4, '#f2d48b');
+      rect(x - 29, y + 1, 58 * Math.min(1, gameState.progress / Game.collection.pickupTime(target)), 4, '#f2d48b');
       label(gameState.progress > 0 ? 'RECOGIENDO' : 'ESPACIO', x, y + 20, 9, '#3c513e');
     }
     Game.sprites.drawActionAnimations();

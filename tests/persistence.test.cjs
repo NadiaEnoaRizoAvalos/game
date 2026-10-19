@@ -29,7 +29,7 @@ test('JSON round-trip reconstruye referencias únicas y todos los campos persist
   s.characters = [{ id: 'jaqui', experience: 1 }];
   s.yard.legacyConstructions = [{ id: 'rope-4' }];
   s.house.legacy.rooms.push({ id: 'kitchen' });
-  s.skills = { washing: 2 };
+  s.workshop.legacySkills = { washing: 2 };
   s.upgrades = [{ id: 'basket-8' }];
   s.basketCapacity = 8;
   s.yard.baseBasketCapacity = 8;

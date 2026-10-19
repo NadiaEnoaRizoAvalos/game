@@ -95,6 +95,20 @@ cargar/guardar prendas. Los depósitos comparten el almacenamiento de la casa.
 También podés comprar canastos de **8 o 12 unidades de volumen** y una tabla de
 lavado más rápida. Todas las compras usan dinero ficticio y quedan guardadas.
 
+### Ayuda y máquinas
+
+En **Pausa → Ayuda, máquinas y habilidades** asigná tareas a Jaqui y consultá su
+canasto y experiencia. Puede recoger/guardar, tender ropa limpia o acercar ropa
+sucia al lavadero. La agenda permite programar una rutina. El carrito amplía su
+capacidad de 4 a 6 unidades de volumen. Caminos, guantes y práctica reducen los
+tropiezos; la ropa sigue siendo recuperable.
+
+Los lavarropas y secadoras se construyen en el patio. Acercate con las prendas en
+tu canasto e iniciá un lote desde el tablón. Tienen capacidad y consumo limitados,
+retienen las prendas hasta descargarlas y requieren mantenimiento cada cinco
+lotes. Las habilidades mejoran con la práctica. Un sensor puede desplegar
+cubiertas en dos sogas elegidas; las entregas siguen siendo manuales.
+
 ##  Controles
 
 | Acción | Computadora | Celular |
@@ -178,7 +192,7 @@ puede perderlos. El JSON sirve como respaldo externo y traslado manual entre dis
 ## Desarrollo de la versión 2.0
 
 La evolución hacia **La lavandería de María Carmen** se prepara en la rama
-`feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 6** incorporan tiempo,
+`feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 7** incorporan tiempo,
 jornadas, persistencia, lavandería, pedidos, pronósticos y reputación, conservando
 el patio, el arte, las animaciones y los controles originales. También incorporan
 familia, gastos, descanso, interior transitable, ampliaciones y muebles.
@@ -187,13 +201,13 @@ Consultá el [diagnóstico inicial](docs/FASE_0_DIAGNOSTICO.md) y el
 [informe de Fase 1](docs/FASE_1_INFORME.md), el [informe de Fase 2](docs/FASE_2_INFORME.md)
 y el [informe de Fase 3](docs/FASE_3_INFORME.md), además de los informes de
 [Fase 4](docs/FASE_4_INFORME.md), [Fase 5](docs/FASE_5_INFORME.md) y
-[Fase 6](docs/FASE_6_INFORME.md).
-La Fase 7 necesita aprobación. Todavía no hay automatización ni máquinas.
+[Fase 6](docs/FASE_6_INFORME.md) y [Fase 7](docs/FASE_7_INFORME.md).
+La Fase 8 continúa tras aprobar las pruebas de Fase 7.
 Los clientes aparecen en el tablón; José y Jaqui tienen sprites
 propios dentro de la casa, dibujados con la paleta y las primitivas originales.
 El dinero comercial y los puntos de la ropa familiar se mantienen separados.
 
-El formato de guardado actual es **6**. Las partidas de formatos 1 a 5 se migran
+El formato de guardado actual es **7**. Las partidas de formatos 1 a 6 se migran
 conservando el progreso; los nuevos datos comerciales se inicializan una sola vez.
 Pedidos, lavado parcial, clima, reputación, transacciones, familia, escena, posición,
 habitaciones, muebles, materiales, construcciones y herramientas se guardan en IndexedDB
@@ -225,7 +239,7 @@ node --test tests/browser.cjs
 Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
 mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
 crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
-Resultado de cierre de Fase 6: **67 pruebas de lógica aprobadas**, incluidas las
+Resultado de cierre de Fase 7: **81 pruebas de lógica aprobadas**, incluidas las
 seis originales, y **un escenario integral de navegador aprobado**.
 Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
 sustituye una prueba física en Android/iPhone ni una revisión auditiva.

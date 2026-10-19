@@ -38,6 +38,7 @@
     } else Game.state.current.player.walking = false;
     Game.weather.update(deltaSeconds);
     Game.laundry.update(deltaSeconds);
+    Game.automation.update(deltaSeconds);
     Game.family.update(deltaSeconds);
     Game.effects.updateParticles(deltaSeconds);
     if (Game.state.current.campaign) {

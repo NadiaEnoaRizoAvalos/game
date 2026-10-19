@@ -20,7 +20,7 @@
   function movePlayer(dx, dy, deltaSeconds) {
     const player = Game.state.current.player;
     const norm = Math.max(1, Math.hypot(dx, dy));
-    const speed = Game.config.settings.speed * (Game.state.current.scene !== 'house' && Game.yard.onPath(player.x, player.y) ? 1.15 : 1);
+    const speed = Game.config.settings.speed * (1 + Game.skills.level('maria', 'speed') * .01) * (Game.state.current.scene !== 'house' && Game.yard.onPath(player.x, player.y) ? 1.15 : 1);
     player.walking = !!(dx || dy);
     if (player.walking) {
       player.facingX = dx;

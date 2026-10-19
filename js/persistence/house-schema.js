@@ -27,8 +27,9 @@
     const woodBought = s.laundry.ledger.filter(e => e.kind === 'house' && e.id.startsWith('wood-')).length * Game.config.house.woodPack.wood;
     const woodUsed = Game.house.rooms(s).reduce((n, r) => n + r.wood, 0) + Game.house.furniture(s).reduce((n, f) => n + f.wood, 0);
     const yardWood = s.yard ? s.constructions.reduce((n, b) => n + Game.config.yard.catalog[b.type].wood, 0) + s.yard.tools.reduce((n, id) => n + Game.config.yard.tools[id].wood, 0) : 0;
-    check(s.resources.wood === woodBought - woodUsed - yardWood, 'balance de materiales');
-    for (const m of s.family.members) check(Game.house.canStand(m.x, m.y, s), 'posición familiar interior');
+    const workshopWood = s.workshop ? s.workshop.owned.reduce((n, id) => n + Game.config.automation.upgrades[id].wood, 0) + s.workshop.roofs.length * Game.config.automation.roof.wood : 0;
+    check(s.resources.wood === woodBought - woodUsed - yardWood - workshopWood, 'balance de materiales');
+    for (const m of s.family.members) if (!(m.id === 'jaqui' && s.workshop?.helper.scene === 'yard')) check(Game.house.canStand(m.x, m.y, s), 'posición familiar interior');
   }
   Game.houseSchema = { validate };
 })();

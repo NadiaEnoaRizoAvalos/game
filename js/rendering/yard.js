@@ -20,13 +20,24 @@
       }
     } else if (b.type === 'rope' || b.type === 'covered') {
       const n = Number(b.id.slice(6));
-      if (b.type === 'covered') {
+      if (b.type === 'covered' || Game.automation.roof(b)) {
         rect(x + 2, y - 8, 116, 37, '#e8d7ae');
         for (let i = 4; i < 112; i += 18) rect(x + i, y - 5, 8, 30, '#b5bd8a');
         line(x + 2, y + 29, x + 118, y + 29, '#92714c', 3);
       }
       // La soga dibuja las prendas reales solo para construcciones instaladas.
       Game.world.drawRope({ x1: x + 10, x2: x + 110, y: y + 50 }, ghost ? -999 : 3 + n);
+    } else if (Game.config.automation.machines[b.type]) {
+      const machine = Game.automation.machine(b.id), spec = Game.config.automation.machines[b.type];
+      rect(x + 4, y + 3, 52, 37, '#92714c'); rect(x + 8, y + 6, 44, 30, '#e7c797');
+      rect(x + 17, y + 12, 26, 21, '#69604b'); rect(x + 21, y + 15, 18, 15, '#7b9a8b');
+      rect(x + 11, y + 8, 4, 3, machine?.remaining > 0 ? '#7e9a5a' : '#b88b52');
+      if (machine?.remaining > 0) {
+        const turn = Math.floor((spec.seconds - machine.remaining) * 4) % 2;
+        rect(x + 24 + turn * 6, y + 18, 5, 7, '#e8d7ae');
+        rect(x + 4, y - 3, 52 * (1 - machine.remaining / spec.seconds), 3, '#f2d48b');
+      }
+      if (machine?.items.length && machine.remaining === 0) label('LISTO', x + 30, y - 6, 9, '#3c513e');
     } else if (b.type === 'basin') {
       rect(x + 5, y + 8, 50, 26, '#92714c'); rect(x + 9, y + 11, 42, 18, '#e7c797');
       rect(x + 13, y + 14, 34, 11, '#7b9a8b'); rect(x + 7, y + 34, 6, 6, '#876e4b'); rect(x + 47, y + 34, 6, 6, '#876e4b');

@@ -96,6 +96,7 @@ ${Game.state.current.climate ? '<button class="secondary" data-action="forecast"
 ${Game.state.current.family ? '<button class="secondary" data-action="family">FAMILIA Y ECONOMÍA</button>' : ''}
 ${Game.state.current.house?.layoutVersion ? '<button class="secondary" data-action="house">CASA Y MUEBLES</button>' : ''}
 ${Game.state.current.yard ? '<button class="secondary" data-action="build">CONSTRUIR PATIO Y HERRAMIENTAS</button>' : ''}
+${Game.state.current.workshop ? '<button class="secondary" data-action="work">AYUDA, MÁQUINAS Y HABILIDADES</button>' : ''}
 </div>`);
     } else if (Game.state.current.mode === 'paused') {
       Game.screens.resume();
@@ -201,6 +202,7 @@ El estante permite guardar y cargar prendas. Para entregar pedidos volvé a la p
       Game.familyMenu.action(a);
       Game.houseMenu.action(a);
       Game.buildMenu.action(a);
+      Game.automationMenu.action(a);
       if (a === 'start') Game.saves.start();
       if (a === 'continue') Game.saves.continueGame();
       if (a === 'nextDay') Game.calendar.advanceDay();

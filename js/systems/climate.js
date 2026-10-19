@@ -53,7 +53,7 @@
     s.stormAnnounced = c.rain >= .9 && s.rainStarted;
     Game.audio.weather(s.rainIntensity);
     for (const p of s.items) {
-      if (!['hanging', 'basket'].includes(p.status)) continue;
+      if (!['hanging', 'basket', 'helper'].includes(p.status)) continue;
       if (p.status === 'basket' && s.scene === 'house') continue;
       if (s.rainIntensity > 0) p.wetness = Game.utils.clamp(p.wetness + dt * 5 * s.rainIntensity / p.resistance * Game.yard.cover(p, s), 0, 100);
       if (!p.orderId) continue;

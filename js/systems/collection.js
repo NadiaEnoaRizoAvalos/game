@@ -6,6 +6,7 @@
 
   const Game = window.RainGame;
   function capacity() { return Game.state.current.basketCapacity ?? Game.config.settings.basketCapacity; }
+  function pickupTime(item) { return item.time * (1 - Game.skills.level('maria', 'organization') * .04); }
   /** Suma los espacios ocupados por las prendas del canasto. */
   function usedSpace() {
     return Game.state.current.basket.reduce((s, p) => s + p.size, 0);
@@ -80,6 +81,7 @@
       duration: 0.55
     });
     Game.state.current.collectPulse = 0.55;
+    Game.skills.gain('maria', ['organization', 'speed']);
     Game.effects.burst(target.x, target.y - 30, target.color);
     Game.audio.play('collect');
     Game.state.current.progress = 0;
@@ -118,11 +120,12 @@
       return;
     }
     gameState.progress += deltaSeconds;
-    if (gameState.progress >= target.time) {
+    if (gameState.progress >= pickupTime(target)) {
       Game.collection.completePickup(target);
     }
   }
   Game.collection = {
+    pickupTime,
     capacity,
     usedSpace: usedSpace,
     scoreFor: valueOf,

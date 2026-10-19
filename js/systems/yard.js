@@ -69,9 +69,13 @@
     }
     const access = (x, y, radius = 25) => queue.some(([a, b]) => Math.hypot(x - a, y - b) <= radius);
     if (s.scene !== 'house' && (!free(s.player.x, s.player.y) || !access(s.player.x, s.player.y, 15))) return false;
+    if (s.workshop?.helper.scene === 'yard') {
+      const m = s.family.members.find(m => m.id === 'jaqui');
+      if (!free(m.x, m.y) || !access(m.x, m.y, 15)) return false;
+    }
     if (!access(310, 260)) return false;
     if (!slots(s).every(p => free(p.x, p.y) && access(p.x, p.y, 30))) return false;
-    return items.filter(b => ['basin', 'storage'].includes(b.type)).every(b => {
+    return items.filter(b => ['basin', 'storage'].includes(b.type) || Game.config.automation.machines[b.type]).every(b => {
       const x = b.x + size(b).w / 2, y = b.y + size(b).h + 15;
       return free(x, y) && access(x, y, 15);
     });
@@ -81,6 +85,7 @@
     const list = active(s).filter(o => o.id !== moving);
     const error = geometry(b, list);
     if (error) return error;
+    if (moving && Game.automation.blocked(moving, s)) return 'Descargá la máquina antes de moverla.';
     if (moving && s.items.some(p => p.status === 'hanging' && position(p.slot, s)?.ropeId === 3 + Number(moving.slice(6)))) return 'Recogé todas las prendas antes de mover el tendedero.';
     if (!connected(proposed(b, s, moving))) return 'La construcción bloquearía un acceso o encerraría al personaje.';
     return null;
@@ -94,6 +99,7 @@
     if (s.resources.wood < c.wood) return 'Falta madera. Comprá materiales desde el tablón.';
     if (!Game.economy.transact(`yard-buy-${b.id}`, -c.price, 'yard', null, s, Game.config.family.reserve)) return 'No alcanza el saldo; reservamos $12 para insumos.';
     s.resources.wood -= c.wood; s.constructions.push(b); s.yard.nextId++;
+    Game.automation.register(s, b); Game.helper.invalidate();
     Game.saves?.auto('construcción'); return null;
   }
   function move(id, x, y, rotation = 0) {
@@ -101,16 +107,17 @@
     if (!b) return 'Esta construcción ya no está disponible.';
     const next = { ...b, x, y, rotation }, error = canPlace(next, s, id);
     if (error) return error;
-    Object.assign(b, next); Game.saves?.auto('reubicación'); return null;
+    Object.assign(b, next); Game.helper.invalidate(); Game.saves?.auto('reubicación'); return null;
   }
   function remove(id) {
     const s = current(), b = active(s).find(o => o.id === id);
     if (!b) return 'Esta construcción ya fue retirada.';
+    if (Game.automation.blocked(id, s)) return 'Descargá la máquina antes de retirarla.';
     if (cfg().catalog[b.type].slots && s.items.some(p => p.status === 'hanging' && position(p.slot, s)?.ropeId === 3 + Number(id.slice(6)))) return 'Recogé las prendas antes de retirar el tendedero.';
     const next = { ...s, constructions: s.constructions.map(o => o.id === id ? { ...o, removed: true } : o) };
     if (!connected(next)) return 'No se puede retirar mientras afecte un acceso.';
     if (!Game.economy.transact(`yard-remove-${id}`, Math.floor(cfg().catalog[b.type].price / 2), 'yard')) return 'No se pudo registrar el retiro.';
-    b.removed = true; Game.saves?.auto('retiro de construcción'); return null;
+    b.removed = true; Game.helper.invalidate(); Game.saves?.auto('retiro de construcción'); return null;
   }
   function tool(id) {
     const s = current(), t = cfg().tools[id];
@@ -127,10 +134,23 @@
     if (!s.yard) return 1;
     const point = p.status === 'basket' ? (s.scene === 'house' ? null : s.player) : p;
     if (!point) return 1;
-    return active(s).some(b => b.type === 'covered' && inside(point.x, point.y, box(b))) ? .1 : 1;
+    if (p.status === 'helper') {
+      const h = s.workshop.helper;
+      if (h.scene === 'house') return 0;
+      const m = s.family.members.find(m => m.id === 'jaqui');
+      return active(s).some(b => (b.type === 'covered' || Game.automation.roof(b, s)) && inside(m.x, m.y, box(b))) ? .1 : 1;
+    }
+    return active(s).some(b => (b.type === 'covered' || Game.automation.roof(b, s)) && inside(point.x, point.y, box(b))) ? .1 : 1;
   }
   function onPath(x, y, s = current()) { return active(s).some(b => b.type === 'path' && inside(x, y, box(b), 1)); }
   function atStorage(s = current()) { return s.scene !== 'house' && active(s).some(b => b.type === 'storage' && Math.hypot(s.player.x - b.x - 30, s.player.y - b.y - 52) < 38); }
-  function context() { return atStorage() ? { kind: 'storage', label: 'PRENDAS' } : null; }
+  function context() {
+    const s = current();
+    if (atStorage()) return { kind: 'storage', label: 'PRENDAS' };
+    if (s.scene !== 'house' && active(s).some(b => Game.config.automation.machines[b.type] && Game.automation.near(b, s))) return { kind: 'machine', label: 'MÁQUINA' };
+    const m = s.family?.members.find(m => m.id === 'jaqui');
+    if (m && s.scene !== 'house' && s.workshop?.helper.scene === 'yard' && Math.hypot(m.x - s.player.x, m.y - s.player.y) < 32) return { kind: 'helper', label: 'JAQUI' };
+    return null;
+  }
   Game.yard = { initialize, active, size, box, overlap, inside, colliders, blocked, position, slots, geometry, connected, canPlace, place, move, remove, tool, cover, onPath, atStorage, context };
 })();

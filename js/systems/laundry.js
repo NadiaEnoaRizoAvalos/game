@@ -4,7 +4,7 @@
   const Game = window.RainGame;
   const cfg = () => Game.config.laundry;
   const current = () => Game.state.current;
-  function duration(item) { return (cfg().wash.seconds + item.size) * (current().yard?.tools.includes('washboard') ? .8 : 1); }
+  function duration(item) { return (cfg().wash.seconds + item.size) * (current().yard?.tools.includes('washboard') ? .8 : 1) * (1 - Game.skills.level('maria', 'washing') * .04); }
   function needsWash(item) {
     const order = current().orders.find(o => o.id === item.orderId);
     return order && item.cleanliness < order.requiredQuality;
@@ -45,9 +45,10 @@
     const s = current();
     if (!Number.isFinite(dt) || dt <= 0 || !nearStation() || !s.basket.includes(item) || !needsWash(item)) return false;
     if (item.washProgress === 0) {
-      if (s.resources.water < cfg().wash.water || s.resources.soap < cfg().wash.soap) return false;
-      s.resources.water -= cfg().wash.water;
-      s.resources.soap -= cfg().wash.soap;
+      const cost = Game.skills.washCost(s);
+      if (s.resources.water < cost.water || s.resources.soap < cost.soap) return false;
+      s.resources.water -= cost.water;
+      s.resources.soap -= cost.soap;
       item.washProgress = Number.EPSILON;
       Game.saves?.auto('inicio de lavado');
     }
@@ -57,6 +58,7 @@
       item.cleanliness = 100;
       item.wetness = 100;
       item.washProgress = 0;
+      Game.skills.gain('maria', ['washing', 'efficiency', 'speed'], s);
       s.progress = 0;
       s.collectPulse = .55;
       Game.audio.play('collect');

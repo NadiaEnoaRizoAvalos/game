@@ -70,7 +70,7 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     const exported = path.join(artifacts, 'partida-exportada.json');
     await download.saveAs(exported);
     const imported = JSON.parse(fs.readFileSync(exported, 'utf8'));
-    assert.equal(imported.version, 6);
+    assert.equal(imported.version, 7);
     imported.data.resources.money = 456;
     const filePayload = { name: 'partida.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(imported)) };
     page.once('dialog', dialog => dialog.dismiss());
@@ -285,6 +285,45 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
     page.once('dialog', dialog => dialog.accept()); await page.locator('#import-file').setInputFiles(yardFile);
     await page.waitForFunction(() => !window.RainGame.saves.busy);
     assert.equal(await page.evaluate(() => window.RainGame.state.current.constructions[0].x), 540);
+    // Fase 7: máquina por menú y Jaqui activa; recuperar un lote sin volver a pagarlo.
+    await page.evaluate(() => {
+      const g = window.RainGame, s = g.state.current;
+      s.daySeconds = 86400; g.climate.newDay(s);
+      g.orders.goods(s.orders[1]).forEach(p => p.wetness = 10);
+      g.screens.resume(); g.screens.pause();
+    });
+    await page.locator('[data-action="build"]').click();
+    await page.locator('[data-action="build:select:washer"]').click();
+    await page.keyboard.press('ArrowLeft');
+    await page.locator('#build-confirm').click();
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => {
+      const g = window.RainGame, s = g.state.current;
+      g.orders.accept('order-3'); Object.assign(s.player, g.config.settings.door); g.laundry.load('order-3');
+      Object.assign(s.player, { x: 510, y: 295 }); g.screens.pause();
+    });
+    await page.locator('[data-action="work"]').click();
+    await page.locator('[data-action="work:start:build-3"]').click();
+    await page.locator('[data-action="work:task:collect"]').click();
+    await page.screenshot({ path: path.join(artifacts, 'automatizacion-desktop.png'), fullPage: true });
+    await page.locator('[data-action="resume"]').click();
+    await page.evaluate(() => { const g = window.RainGame; for (let i = 0; i < 300; i++) g.engine.update(1 / 60); g.renderer.render(); });
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.workshop.helper.scene), 'yard');
+    await page.screenshot({ path: path.join(artifacts, 'jaqui-y-maquina.png'), fullPage: true });
+    const paidWater = await page.evaluate(() => window.RainGame.state.current.resources.water);
+    await page.evaluate(() => window.RainGame.saves.save());
+    await context.close(); context = await chromium.launchPersistentContext(profile, options); page = await openPage(context);
+    await page.locator('[data-action="continue"]').click(); await page.waitForFunction(() => window.RainGame.saves.active);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.workshop.machines[0].cycles), 1);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.workshop.helper.active), true);
+    await page.evaluate(() => { const g = window.RainGame; g.screens.resume(); for (let i = 0; i < 1800; i++) g.engine.update(1 / 60); g.screens.pause(); });
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.resources.water), paidWater);
+    await page.locator('[data-action="work"]').click();
+    await page.locator('[data-action="work:unload:build-3"]').click();
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.workshop.machines[0].items.length), 0);
+    assert.equal(await page.evaluate(() => window.RainGame.state.current.basket.some(p => p.orderId === 'order-3' && p.cleanliness === 100)), true);
+    await page.locator('[data-action="work:skills"]').click();
+    await page.screenshot({ path: path.join(artifacts, 'habilidades-desktop.png'), fullPage: true });
     // Capturas y controles por Pointer Events en orientaciones de celular.
     const mobile = await context.browser().newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
     const phone = await openPage(mobile);
@@ -358,6 +397,13 @@ test('Navegador: IndexedDB, reinicio, descargas/importación y controles respons
       await phone.screenshot({ path: path.join(artifacts, `${name}-construccion.png`) });
       await phone.locator('#build-confirm').tap();
       assert.equal(await phone.evaluate(() => window.RainGame.yard.active().length), ['portrait', 'landscape', 'small'].indexOf(name) + 1);
+      await phone.locator('[data-action="resume"]').click();
+      await phone.evaluate(() => window.RainGame.screens.pause());
+      await phone.locator('[data-action="work"]').click();
+      await phone.locator('[data-action="work:task:collect"]').click();
+      await phone.locator('[data-action="work:skills"]').scrollIntoViewIfNeeded();
+      await phone.screenshot({ path: path.join(artifacts, `${name}-automatizacion.png`) });
+      await phone.locator('[data-action="work:skills"]').click();
       await phone.locator('[data-action="resume"]').click();
       for (const kind of ['heat', 'wind', 'storm']) {
         await phone.evaluate(kind => { const g = window.RainGame; g.state.current.climate.segments[0].kind = kind; g.hud.update(); }, kind);

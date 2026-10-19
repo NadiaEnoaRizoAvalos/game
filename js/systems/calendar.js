@@ -46,6 +46,7 @@
     Game.family.initialize(state);
     Game.house.initialize(state);
     Game.yard.initialize(state);
+    Game.automation.initialize(state);
     return state;
   }
 
