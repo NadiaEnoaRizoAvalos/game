@@ -52,12 +52,35 @@ de recuperar la relación. Los clientes con tres entregas puntuales y confianza
 suficiente ofrecen un adicional de $5. La cantidad de ofertas depende de la
 reputación; siempre existe una vía para recuperarse.
 
+### Familia y casa
+
+En **Pausa → Familia y economía** consultá el saldo, ingresos, gastos y cobros
+pendientes. Podés pagar compras familiares y eventos escolares, o aplazarlos sin
+multas. Se reservan $12 para insumos. Si faltan dinero y agua o jabón, la ayuda
+vecinal entrega insumos una vez por día para retomar el trabajo.
+
+Acercate a la puerta y presioná **Espacio / Entrar** para recorrer la casa.
+José y Jaqui están dentro; José vuelve de la escuela después del mediodía.
+Caminá hasta los muebles y familiares para interactuar. El estante permite guardar
+y cargar prendas; los clientes reciben sus pedidos en la puerta exterior.
+El clima y el secado del patio continúan mientras estás dentro y el canasto queda
+protegido bajo techo. Para salir, acercate a la puerta interior y presioná acción.
+
+La mesa y la cama permiten descansar con mates cuando están resueltos los pedidos
+que vencen hoy; los futuros pueden seguir pendientes. El resumen muestra cuentas,
+entregas, reputación y pronóstico. Siempre podés seguir jugando después del resumen.
+
+En **Pausa → Casa y muebles** comprá madera, habitaciones y muebles con dinero
+del juego. Hay cuartos para María, José y Jaqui, y un lavadero cubierto con pileta
+comprable. El plano interior crece con las compras. Los muebles tienen posiciones
+preparadas para mantener libres las puertas; no hay colocación libre todavía.
+
 ##  Controles
 
 | Acción | Computadora | Celular |
 |---|---|---|
 | Moverse | `W A S D` / flechas | Joystick en pantalla |
-| Recoger, lavar o tender | `Espacio`, según el contexto | Botón **RECOGER / LAVAR / TENDER** |
+| Acción contextual | `Espacio`: recoger, lavar, tender, entrar, salir o interactuar | Botón de acción con el texto correspondiente |
 | Guardar ropa | Volver a casa | Volver a casa |
 | Pausar | `P`, `Escape` o botón de pausa | Botón de pausa |
 
@@ -135,20 +158,24 @@ puede perderlos. El JSON sirve como respaldo externo y traslado manual entre dis
 ## Desarrollo de la versión 2.0
 
 La evolución hacia **La lavandería de María Carmen** se prepara en la rama
-`feature/lavanderia-maria-carmen-v2`. Las **Fases 1, 2 y 3** incorporan tiempo,
+`feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 5** incorporan tiempo,
 jornadas, persistencia, lavandería, pedidos, pronósticos y reputación, conservando
-el patio, el arte, las animaciones y los controles originales.
+el patio, el arte, las animaciones y los controles originales. También incorporan
+familia, gastos, descanso, interior transitable, ampliaciones y muebles.
 
 Consultá el [diagnóstico inicial](docs/FASE_0_DIAGNOSTICO.md) y el
 [informe de Fase 1](docs/FASE_1_INFORME.md), el [informe de Fase 2](docs/FASE_2_INFORME.md)
-y el [informe de Fase 3](docs/FASE_3_INFORME.md). La Fase 4 necesita aprobación.
-No se incorporaron todavía interiores, construcciones ni economía familiar.
-Los vecinos aparecen en el tablón; no se agregaron sprites de personajes.
+y el [informe de Fase 3](docs/FASE_3_INFORME.md), además de los informes de
+[Fase 4](docs/FASE_4_INFORME.md) y [Fase 5](docs/FASE_5_INFORME.md).
+La Fase 6 necesita aprobación. Todavía no hay construcción libre del patio ni
+automatización. Los clientes aparecen en el tablón; José y Jaqui tienen sprites
+propios dentro de la casa, dibujados con la paleta y las primitivas originales.
 El dinero comercial y los puntos de la ropa familiar se mantienen separados.
 
-El formato de guardado actual es **3**. Las partidas de formatos 1 y 2 se migran
+El formato de guardado actual es **5**. Las partidas de formatos 1 a 4 se migran
 conservando el progreso; los nuevos datos comerciales se inicializan una sola vez.
-Pedidos, lavado parcial, clima, reputación y transacciones se guardan en IndexedDB
+Pedidos, lavado parcial, clima, reputación, transacciones, familia, escena, posición,
+habitaciones, muebles y materiales se guardan en IndexedDB
 y se incluyen en la exportación JSON. Los eventos comerciales también autoguardan.
 
 La duración de una jornada nueva se configura en `Game.config.simulation.daySeconds`
@@ -177,7 +204,7 @@ node --test tests/browser.cjs
 Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
 mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
 crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
-Resultado de cierre de Fase 3: **40 pruebas de lógica aprobadas**, incluidas las
+Resultado de cierre de Fase 5: **55 pruebas de lógica aprobadas**, incluidas las
 seis originales, y **un escenario integral de navegador aprobado**.
 Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
 sustituye una prueba física en Android/iPhone ni una revisión auditiva.

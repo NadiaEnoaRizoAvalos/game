@@ -2,6 +2,8 @@
 
 Completada en `feature/lavanderia-maria-carmen-v2`. Main y producción permanecen intactas.
 
+Commit funcional subido y verificado en GitHub: `aaa462f` (`feat: incorporar familia gastos y descanso con mates`).
+
 ## Implementación
 
 - Movimientos económicos atómicos e identificados; entregas, insumos y gastos comparten el libro de cuentas. Saldo, ingresos, egresos, cobros pendientes y últimos 50 movimientos consultables; historial completo en el JSON.
