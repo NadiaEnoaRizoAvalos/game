@@ -1,6 +1,6 @@
 # Fase 8 — Guía, balance, rendimiento y validación final
 
-Implementada en `feature/lavanderia-maria-carmen-v2`, después de aprobar las 81 pruebas de lógica y la integración de Chrome de Fase 7. Main y el despliegue original permanecen intactos. Se prepara un PR en borrador para revisión, sin merge ni publicación.
+Implementada en `feature/lavanderia-maria-carmen-v2`, después de aprobar las 81 pruebas de lógica y la integración de Chrome de Fase 7. Main y el despliegue original permanecen intactos. El título y la descripción del PR quedan preparados en [PR_BORRADOR.md](PR_BORRADOR.md): la autorización de creación mediante la herramienta de GitHub fue rechazada, por lo que no se creó el PR. No se realizó merge ni publicación.
 
 ## Pulido realizado
 
