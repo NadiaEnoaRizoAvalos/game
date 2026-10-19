@@ -41,4 +41,4 @@ No se probaron celulares físicos, Safari/Firefox ni escucha humana del audio. L
 4. Asignar a Jaqui recoger/guardar o transportar; consultar su estado y recibir su canasto cerca de ella.
 5. Comprar agenda, filtro, carrito o sensor cuando alcance el saldo; consultar Habilidades para ver la práctica acumulada.
 
-El commit funcional se identifica en el historial y en la entrega. Fase 8 autorizada únicamente tras la validación anterior.
+Commit funcional subido y verificado en GitHub: `fe32498` (`feat: implementar maquinas tareas de Jaqui y habilidades persistentes`). Fase 8 autorizada únicamente tras la validación anterior.
