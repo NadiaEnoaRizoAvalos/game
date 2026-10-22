@@ -2,7 +2,7 @@
 
 Base: `main` · Rama propuesta: `feature/lavanderia-maria-carmen-v2` · Estado previsto: borrador.
 
-No se creó el PR: la herramienta de GitHub devolvió `user rejected MCP tool call`. Este archivo deja la propuesta preparada para revisión, sin merge ni despliegue.
+Registro histórico de Fase 8: no se creó el PR porque la herramienta de GitHub devolvió `user rejected MCP tool call`. Esa entrega quedó sin merge ni despliegue. El pedido posterior de cierre autoriza integrar directamente mediante Git; el estado actual se registra en [CIERRE_FINAL.md](CIERRE_FINAL.md).
 
 ## Descripción preparada
 

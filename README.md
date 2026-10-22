@@ -28,7 +28,15 @@ La idea inicial era simple: un juego donde hay que **juntar la ropa antes de que
 
 ### La lavandería de María Carmen
 
-Desde **Pausa → Pedidos e insumos**, aceptá pedidos de los vecinos. En la puerta,
+Los vecinos esperan físicamente al costado de la entrada, en la zona **ESPERA**.
+Acercate y presioná **Espacio / Acción**: María entra a casa y abre el cartel de
+atención, con el retrato del vecino, tipo y cantidad de prendas, precio, plazo y
+limpieza requerida. Podés **Aceptar pedido** o **Rechazar pedido**. El vecino se
+retira al decidir; rechazar no consume recursos ni reduce la reputación y queda
+registrado. Si ya estás dentro, usá **Pausa → Atender vecinos**. Después de decidir,
+**Atender siguiente vecino** permite continuar con la fila sin salir.
+
+También se conserva el tablón **Pausa → Pedidos e insumos**. En la puerta,
 cargá sus prendas; llevalas al lavadero a la derecha de la casa y mantené la acción
 para lavar. Acercate a una soga libre y presioná acción para tender, soltando entre
 prendas. Cuando estén secas, recogelas y guardalas en casa. Desde la puerta, abrí
@@ -170,7 +178,6 @@ El juego no requiere compilación ni dependencias. En la carpeta ya clonada:
 
 ```powershell
 Set-Location 'G:\WINDOWS\Desktop\Proyectos\antes de la lluvia'
-git switch feature/lavanderia-maria-carmen-v2
 python -m http.server 8000
 ```
 
@@ -199,7 +206,7 @@ puede perderlos. El JSON sirve como respaldo externo y traslado manual entre dis
 
 ## Desarrollo de la versión 2.0
 
-La evolución hacia **La lavandería de María Carmen** se prepara en la rama
+La evolución hacia **La lavandería de María Carmen** se desarrolló en la rama
 `feature/lavanderia-maria-carmen-v2`. Las **Fases 1 a 8** incorporan tiempo,
 jornadas, persistencia, lavandería, pedidos, pronósticos y reputación, conservando
 el patio, el arte, las animaciones y los controles originales. También incorporan
@@ -210,18 +217,21 @@ Consultá el [diagnóstico inicial](docs/FASE_0_DIAGNOSTICO.md) y el
 y el [informe de Fase 3](docs/FASE_3_INFORME.md), además de los informes de
 [Fase 4](docs/FASE_4_INFORME.md), [Fase 5](docs/FASE_5_INFORME.md) y
 [Fase 6](docs/FASE_6_INFORME.md), [Fase 7](docs/FASE_7_INFORME.md) y
-[Fase 8](docs/FASE_8_INFORME.md). La versión queda preparada para revisión;
-main y su despliegue se mantienen sin cambios.
-Los clientes aparecen en el tablón; José y Jaqui tienen sprites
-propios dentro de la casa, dibujados con la paleta y las primitivas originales.
+[Fase 8](docs/FASE_8_INFORME.md) y el [informe de cierre](docs/CIERRE_FINAL.md).
+El cierre agrega vecinos visibles y atención en casa, y prepara la incorporación
+normal a `main` después de validar y publicar la rama de desarrollo.
+Los clientes, José y Jaqui usan sprites dibujados con la paleta y las primitivas originales.
 El dinero comercial y los puntos de la ropa familiar se mantienen separados.
 
-El formato de guardado actual es **8**. Las partidas de formatos 1 a 7 se migran
+El formato de guardado actual es **9**. Las partidas de formatos 1 a 8 se migran
 conservando el progreso; los nuevos datos comerciales se inicializan una sola vez.
 Pedidos, lavado parcial, clima, reputación, transacciones, familia, escena, posición,
 habitaciones, muebles, materiales, construcciones, herramientas, lotes, tareas,
 habilidades y guía se guardan en IndexedDB
 y se incluyen en la exportación JSON. Los eventos comerciales también autoguardan.
+La fila de visitantes se reconstruye desde las ofertas guardadas del día; aceptar
+o rechazar retira al visitante sin crear otra identidad ni duplicar prendas.
+Si una construcción ocupa un lugar de espera, se elige otro libre cerca de la casa.
 
 La duración de una jornada nueva se configura en `Game.config.simulation.daySeconds`
 en `js/config/game-config.js` (240 segundos por defecto; formato válido: 30–86400).
@@ -249,21 +259,27 @@ node --test tests/browser.cjs
 Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
 mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
 crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
-Resultado de cierre de Fase 8: **91 pruebas de lógica aprobadas**, incluidas las
-seis originales, y **un escenario integral de navegador aprobado**.
+Resultado del cierre con clientes: **96 pruebas de lógica aprobadas**, incluidas las
+seis originales, y **un escenario integral de navegador aprobado**. Incluye atención
+con teclado y toque, retrato visible, aceptar/rechazar, cerrar y reabrir el navegador,
+y controles y cartel a 390×844, 844×390 y 320×568. Se revisaron las capturas y se
+corrigió una regla CSS que agrandaba el retrato en móvil; la regresión comprueba
+su tamaño y que no tape el texto.
 Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
 sustituye una prueba física en Android/iPhone ni una revisión auditiva.
 
 El escenario de balance cubre treinta jornadas y noventa pedidos, pagando insumos
 y necesidades familiares. Usa tiempos amplios y acciones aceleradas: comprueba
 coherencia económica con buen servicio, no la dificultad para una persona.
-Los resultados y límites de compatibilidad están en el informe de Fase 8.
+Los resultados y límites de compatibilidad están en los informes de Fase 8 y cierre.
 
 Para ampliar el estado, actualizar el esquema en `persistence/format.js`, su
 versión/migración y las pruebas de integridad. No serializar referencias duplicadas:
 cada prenda tiene un ID y una única ubicación. Mantener separados simulación,
 persistencia y presentación. Trabajar solo en la rama de desarrollo, con pruebas,
-commits y push por funcionalidad; no fusionar ni publicar sobre main.
+commits y push por funcionalidad. El cierre actual tiene autorización explícita
+para incorporar la versión validada a `main` mediante merge normal, conservando
+la rama de desarrollo y el historial.
 
 ## Aprendizajes del proyecto original
 
