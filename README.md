@@ -178,6 +178,7 @@ El juego no requiere compilación ni dependencias. En la carpeta ya clonada:
 
 ```powershell
 Set-Location 'G:\WINDOWS\Desktop\Proyectos\antes de la lluvia'
+git switch main
 python -m http.server 8000
 ```
 
@@ -218,8 +219,9 @@ y el [informe de Fase 3](docs/FASE_3_INFORME.md), además de los informes de
 [Fase 4](docs/FASE_4_INFORME.md), [Fase 5](docs/FASE_5_INFORME.md) y
 [Fase 6](docs/FASE_6_INFORME.md), [Fase 7](docs/FASE_7_INFORME.md) y
 [Fase 8](docs/FASE_8_INFORME.md) y el [informe de cierre](docs/CIERRE_FINAL.md).
-El cierre agrega vecinos visibles y atención en casa, y prepara la incorporación
-normal a `main` después de validar y publicar la rama de desarrollo.
+El cierre agrega vecinos visibles y atención en casa. La versión completa está
+incorporada a `main` mediante el merge `3e60fb0`, publicado y verificado en GitHub
+después de validar y publicar la rama de desarrollo, que se conserva.
 Los clientes, José y Jaqui usan sprites dibujados con la paleta y las primitivas originales.
 El dinero comercial y los puntos de la ropa familiar se mantienen separados.
 

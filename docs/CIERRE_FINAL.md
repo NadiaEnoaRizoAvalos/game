@@ -2,13 +2,19 @@
 
 Fecha: 21 de octubre de 2026.
 
-## Estado antes de incorporar a main
+## Estado de la entrega
 
 La mejora final se implementó y validó en `feature/lavanderia-maria-carmen-v2`.
-El commit funcional `b505036` se publicó correctamente en esa misma rama.
-La incorporación a `main` está autorizada por el pedido de cierre y se ejecutará
-después de publicar esta documentación y comunicar los resultados. Este registro
-previo no afirma que el merge o el push de main ya hayan ocurrido.
+Se publicaron `b505036` (funcionalidad y pruebas) y `221b5bf` (documentación previa)
+en esa rama. Se comprobó que estaba limpia y coincidía con GitHub, y se comunicaron
+los resultados antes de iniciar la integración autorizada.
+
+La rama final es **main**. El merge normal `3e60fb09315c0c07934645c621be7c0d6b22e72d`
+incorpora las fases completas y los clientes visibles sin conflictos. El push de
+ese merge fue exitoso y `git ls-remote --heads origin main` confirmó exactamente
+ese hash en GitHub. Este registro de entrega y el README se completan en un commit
+posterior de documentación; el código del juego sigue siendo el mismo que se probó.
+La rama feature se conserva en `221b5bf4a59e49dd562da7619abb68cfc13e0719`.
 
 ## Juego incorporado
 
@@ -102,6 +108,11 @@ autoguardado existentes. No se requiere que haya un guardado previo para jugar.
 - `git diff --check`: sin errores de espacios. Las capturas y perfiles quedan
   en `.test-artifacts/`, excluida de Git.
 
+Después del merge se repitieron ambos comandos sobre **main**: nuevamente
+**96 pruebas de lógica y un escenario integral de navegador aprobados**, sin
+fallos ni errores de JavaScript registrados por el escenario. Antes de publicar
+se comprobó que el árbol integrado era idéntico al de feature.
+
 Las pruebas no sustituyen una sesión física en Android/iPhone. No se probaron
 Safari ni Firefox, ni se hizo una revisión auditiva humana. El balance acelerado
 comprueba coherencia con buen servicio, no la dificultad para una persona.
@@ -110,21 +121,27 @@ comprueba coherencia con buen servicio, no la dificultad para una persona.
 
 Commit funcional de este cierre: `b505036` — vecinos visibles, atención,
 decisiones persistentes, estilos y pruebas. Publicado en la rama feature.
-La documentación del cierre se publica en un segundo commit antes del merge.
+La documentación previa se publicó en `221b5bf` antes del merge.
 
 Commits previos relevantes: `ee5b627` (pedidos), `d642226` (clima y reputación),
 `aaa462f` (familia), `5ccad55` (interior), `779c005` (patio), `fe32498` (automatización)
-y `b8117be` (guía y pulido). La integración conservará todo el historial.
+y `b8117be` (guía y pulido). La integración conserva todo el historial.
 
-Estrategia prevista: actualizar referencias remotas, comprobar limpieza y
-ascendencia, actualizar main sin sobrescribir cambios y realizar
-`git merge --no-ff feature/lavanderia-maria-carmen-v2`. Repetir pruebas en el árbol
-integrado, publicar main y comparar el hash remoto. Sin force push, rebase,
-reescritura del historial ni eliminación de ramas.
+Estrategia ejecutada: `git fetch origin`, comprobación de limpieza y ascendencia,
+`git switch main`, `git merge --ff-only origin/main` (ya estaba actualizada) y
+`git merge --no-ff feature/lavanderia-maria-carmen-v2`. Git utilizó la estrategia
+`ort`, sin conflictos. La base de main era `3fb830e` y feature terminaba en
+`221b5bf`; ambos son padres del merge `3e60fb0`.
+
+Se integraron 86 archivos, se repitieron las pruebas, se ejecutó `git push origin
+main` y se comparó el hash remoto. No se usaron force push, rebase, reescritura
+del historial ni eliminación de ramas. No hay PR creado ni una publicación web
+adicional gestionada en este cierre; la entrega solicitada está en el repositorio.
 
 ## Cómo probar
 
-Desde la carpeta del repositorio, ejecutar `python -m http.server 8000` y abrir
+Desde la carpeta del repositorio en la rama `main`, ejecutar
+`python -m http.server 8000` y abrir
 [http://localhost:8000](http://localhost:8000). No hay compilación ni dependencias
 de ejecución. Usar siempre el mismo navegador, dirección y puerto para recuperar
 la partida. En celular, usar la dirección LAN del equipo servidor y el mismo
