@@ -2,6 +2,12 @@
 
 Fecha: 21 de octubre de 2026.
 
+Actualización posterior a la entrega: por pedido explícito de la autora se
+retiraron de main los 13 archivos de `tests/`, incluidos auxiliares y el escenario
+de navegador. El código del juego no cambió. Las rutas, comandos y resultados
+de pruebas que aparecen a continuación documentan la validación histórica previa
+a esa retirada; ya no son instrucciones ejecutables sobre la versión actual.
+
 ## Estado de la entrega
 
 La mejora final se implementó y validó en `feature/lavanderia-maria-carmen-v2`.

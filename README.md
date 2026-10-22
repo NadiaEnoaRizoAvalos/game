@@ -158,7 +158,7 @@ El código está organizado en módulos separados por responsabilidad:
 game/
 ├── index.html
 ├── style.css
-├── js/
+└── js/
 │   ├── core/         # Estado, motor del juego y utilidades
 │   ├── config/       # Configuración y parámetros
 │   ├── systems/      # Jugador, recolección, clima y efectos
@@ -169,7 +169,6 @@ game/
 │   ├── audio/        # Sonido
 │   ├── integrations/
 │   └── main.js       # Punto de entrada
-└── tests/            # Pruebas
 ```
 
 ## Cómo ejecutarlo
@@ -242,46 +241,21 @@ y conserva el tiempo entre frames, incluso por debajo de 20 FPS.
 El adaptador de niveles original permanece para regresiones; las nuevas partidas
 no usan ni dependen de `config.levels`.
 
-## Pruebas y desarrollo
+## Validación de la entrega
 
-Pruebas de lógica con Node.js, sin instalar dependencias:
+Antes de publicar el juego se aprobaron **96 pruebas de lógica**, incluidas las
+seis originales, y **un escenario integral en Chrome** con persistencia real,
+atención de clientes y controles táctiles emulados en tres tamaños de celular.
+Los resultados y límites están registrados en los informes de Fase 8 y cierre;
+no sustituyen pruebas físicas en Android/iPhone, Safari o Firefox.
 
-```bash
-node --test tests/*.test.cjs
-```
+Por pedido de la autora se retiraron de la versión actual todos los archivos de
+pruebas automatizadas, incluidos sus auxiliares y el escenario de navegador.
+Los informes conservan el registro histórico de la validación realizada.
 
-Para integración de navegador, usar una instalación de Playwright disponible para
-Node y definir `BROWSER_EXECUTABLE` con la ruta de Chrome/Chromium o Edge:
-
-```powershell
-$env:BROWSER_EXECUTABLE='C:\Program Files\Google\Chrome\Application\chrome.exe'
-node --test tests/browser.cjs
-```
-
-Si Playwright está instalado fuera del proyecto, indicar su carpeta `node_modules`
-mediante `NODE_PATH`. No es una dependencia del juego. La prueba sirve HTTP local,
-crea perfiles separados y guarda capturas/JSON en `.test-artifacts/`, excluida de Git.
-Resultado del cierre con clientes: **96 pruebas de lógica aprobadas**, incluidas las
-seis originales, y **un escenario integral de navegador aprobado**. Incluye atención
-con teclado y toque, retrato visible, aceptar/rechazar, cerrar y reabrir el navegador,
-y controles y cartel a 390×844, 844×390 y 320×568. Se revisaron las capturas y se
-corrigió una regla CSS que agrandaba el retrato en móvil; la regresión comprueba
-su tamaño y que no tape el texto.
-Se probó con Chrome, persistencia real y gestos multitáctiles emulados. Esto no
-sustituye una prueba física en Android/iPhone ni una revisión auditiva.
-
-El escenario de balance cubre treinta jornadas y noventa pedidos, pagando insumos
-y necesidades familiares. Usa tiempos amplios y acciones aceleradas: comprueba
-coherencia económica con buen servicio, no la dificultad para una persona.
-Los resultados y límites de compatibilidad están en los informes de Fase 8 y cierre.
-
-Para ampliar el estado, actualizar el esquema en `persistence/format.js`, su
-versión/migración y las pruebas de integridad. No serializar referencias duplicadas:
-cada prenda tiene un ID y una única ubicación. Mantener separados simulación,
-persistencia y presentación. Trabajar solo en la rama de desarrollo, con pruebas,
-commits y push por funcionalidad. El cierre actual tiene autorización explícita
-para incorporar la versión validada a `main` mediante merge normal, conservando
-la rama de desarrollo y el historial.
+Para ampliar el estado, actualizar el esquema en `js/persistence/format.js` y su
+versión/migración. Cada prenda tiene un ID y una única ubicación. Mantener
+separados simulación, persistencia y presentación.
 
 ## Aprendizajes del proyecto original
 
