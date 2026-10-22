@@ -16,15 +16,15 @@
   /** Dibuja una prenda y sus broches; pose permite animarla fuera de la soga. */
   function drawGarment(garment, pose = null) {
     const picking = !pose && Game.state.current.target === garment && Game.state.current.progress > 0;
-    const q = picking ? Game.utils.clamp(Game.state.current.progress / garment.time, 0, 1) : 0;
-    const sway = Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.current.level.wind * (1 + Game.state.current.rainIntensity * .6);
+    const q = picking ? Game.utils.clamp(Game.state.current.progress / Game.collection.pickupTime(garment), 0, 1) : 0;
+    const sway = Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.weather().wind * (1 + Game.state.current.rainIntensity * .6);
     const x = pose ? pose.x : garment.x + sway;
     const y = pose ? pose.y : garment.y - 52 + Math.sin(q * Math.PI) * 4;
     context.save();
     context.translate(x, y);
     const scale = pose ? pose.scale : .72;
     context.scale(scale, scale);
-    context.rotate(pose ? pose.angle : Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.current.level.wind * .009 + (picking ? Math.sin(q * Math.PI * 6) * .06 : 0));
+    context.rotate(pose ? pose.angle : Math.sin(Game.runtime.clock * 2 + garment.x) * Game.state.weather().wind * .009 + (picking ? Math.sin(q * Math.PI * 6) * .06 : 0));
     const c = wetColor(garment.color, garment.wetness);
     const clothRect = (x, y, w, h, color) => rect(x, y, w, h, wetColor(color, garment.wetness));
     const clothLine = (x, y, x2, y2, color, width) => line(x, y, x2, y2, wetColor(color, garment.wetness), width);
@@ -83,13 +83,14 @@
     const player = Game.state.current.player;
     const x = Math.round(player.x);
     const y = Math.round(player.y);
+    const seated = !!Game.state.current.family?.mate;
     const step = player.walking ? Math.sin(Game.runtime.clock * 17) * 4 : 0;
     const reach = Game.state.current.progress > 0 || Game.state.current.collectPulse > 0;
     const reachWave = reach ? Math.sin(Game.runtime.clock * 15) * 5 : 0;
     const storing = Game.state.current.depositAnim && Math.hypot(player.x - Game.state.current.depositAnim.x, player.y - Game.state.current.depositAnim.y) < 12;
     const bend = storing ? Math.sin(Game.state.current.depositAnim.time / Game.state.current.depositAnim.duration * Math.PI) * 6 : 0;
     context.save();
-    context.translate(x, y + bend);
+    context.translate(x, y + bend + (seated ? 8 : 0));
     context.scale(.72, .72);
     context.rotate(storing ? Math.sin(Game.state.current.depositAnim.time / Game.state.current.depositAnim.duration * Math.PI) * .12 : 0);
     if (player.facingX < 0) {
@@ -132,7 +133,7 @@
       rect(0, -55, 5, 2, '#b87769');
       line(-6, -62, 8, -62, '#8b876f', 1);
     }
-    Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / 6);
+    if (!seated) Game.sprites.basket(29, storing ? -21 : -13 - Game.state.current.collectPulse * 8, Game.collection.usedSpace() / Game.collection.capacity());
     context.restore();
   }
 
@@ -176,6 +177,7 @@
     }
     const a = gameState.depositAnim;
     if (a) {
+      const destination = a.scene === 'house' ? { x: a.x, y: a.y - 30 } : { x: 174, y: 179 };
       for (let i = 0; i < a.items.length; i++) {
         const t = Game.utils.clamp((a.time - i * .07) / .6, 0, 1);
         if (t >= 1) {
@@ -183,14 +185,14 @@
         }
         context.globalAlpha = 1 - t * .6;
         Game.sprites.drawGarment(a.items[i], {
-          x: a.x + 18 + (174 - a.x - 18) * t,
-          y: a.y - 18 + (179 - a.y + 18) * t - Math.sin(t * Math.PI) * 19,
+          x: a.x + 18 + (destination.x - a.x - 18) * t,
+          y: a.y - 18 + (destination.y - a.y + 18) * t - Math.sin(t * Math.PI) * 19,
           scale: .4 * (1 - t * .7),
           angle: -t * .25
         });
         context.globalAlpha = 1;
       }
-      label('+' + a.points + ' puntos', 174, 157 - a.time * 20, 13, '#fcdf9b');
+      label(a.orderOnly ? 'A resguardo' : '+' + a.points + ' puntos', destination.x, destination.y - 22 - a.time * 20, 13, '#fcdf9b');
     }
   }
   Game.sprites = {

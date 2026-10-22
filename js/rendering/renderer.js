@@ -19,12 +19,17 @@
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, Game.dom.canvas.width, Game.dom.canvas.height);
     context.save();
-    const camera = Game.camera.viewport.mobile ? Game.camera.cameraFor(Game.camera.viewport.width, Game.camera.viewport.height, gameState.player) : {
+    const camera = gameState.mode === 'building' ? Game.buildMenu.camera() : Game.camera.viewport.mobile ? Game.camera.cameraFor(Game.camera.viewport.width, Game.camera.viewport.height, gameState.player) : {
       scale: 1,
       x: 0,
       y: 0
     };
     context.setTransform(Game.camera.viewport.dpr * camera.scale, 0, 0, Game.camera.viewport.dpr * camera.scale, -camera.x * Game.camera.viewport.dpr * camera.scale, -camera.y * Game.camera.viewport.dpr * camera.scale);
+    if (gameState.scene === 'house') {
+      Game.houseDrawing.draw();
+      context.restore();
+      return;
+    }
     rect(0, 0, w, h, '#b2c88c');
     // Grass texture and wide paths keep all three clotheslines connected.
     for (let i = 0; i < 470; i++) {
@@ -79,6 +84,8 @@
         rect(x - 1, y + 3, 4, 3, '#d8a565');
       }
     }
+    Game.yardDrawing.ground();
+    Game.customerDrawing.ground();
     // Ground markers make the collection radius readable from either side.
     const target = gameState.mode === 'playing' ? Game.collection.nearest() : null;
     if (target) {
@@ -123,12 +130,18 @@
       y: t.y,
       draw: () => Game.world.tree(t.x, t.y, t.z)
     }))];
+    if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
+    layers.push(...Game.yardDrawing.layers());
+    for (const v of Game.customers.waiting()) layers.push({ y: v.y, draw: () => Game.customerDrawing.draw(v) });
+    if (gameState.family && !gameState.house.layoutVersion) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
+    if (gameState.workshop?.helper.scene === 'yard') { const m = gameState.family.members.find(m => m.id === 'jaqui'); layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) }); }
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());
+    Game.familyDrawing.mate();
     if (target) {
       const x = target.x;
       const y = target.y + 27;
       rect(x - 30, y, 60, 6, '#697956');
-      rect(x - 29, y + 1, 58 * Math.min(1, gameState.progress / target.time), 4, '#f2d48b');
+      rect(x - 29, y + 1, 58 * Math.min(1, gameState.progress / Game.collection.pickupTime(target)), 4, '#f2d48b');
       label(gameState.progress > 0 ? 'RECOGIENDO' : 'ESPACIO', x, y + 20, 9, '#3c513e');
     }
     Game.sprites.drawActionAnimations();
@@ -138,21 +151,29 @@
     }
     context.globalAlpha = 1;
     // Clouds are moving shadows seen on the ground, rather than a side-view sky.
-    const dark = Game.utils.clamp(gameState.elapsed / (gameState.level.delay + 14), 0, 1);
+    const dark = gameState.climate ? Game.climate.conditions().cloud : Game.utils.clamp(gameState.elapsed / (Game.state.weather().delay + 14), 0, 1);
     context.fillStyle = `rgba(45,66,84,${dark * .32})`;
     context.fillRect(0, 0, w, h);
     context.globalAlpha = .035 + dark * .06;
     for (let i = 0; i < 4; i++) {
-      cloud((i * 330 + Game.runtime.clock * (7 + gameState.level.wind)) % 1450 - 250, 90 + i % 3 * 175, 2.4, '#435e68');
+      cloud((i * 330 + Game.runtime.clock * (7 + Game.state.weather().wind)) % 1450 - 250, 90 + i % 3 * 175, 2.4, '#435e68');
     }
     context.globalAlpha = 1;
     Game.renderer.drawRain();
+    if (gameState.climate && Game.climate.conditions().dust) {
+      context.globalAlpha = .25;
+      for (let i = 0; i < 30; i++) {
+        rect((i * 71 + Game.runtime.clock * 80) % w, (i * 113) % h, 5, 2, '#b08e5e');
+      }
+      context.globalAlpha = 1;
+    }
     if (gameState.flash > 0) {
       context.fillStyle = `rgba(255,255,228,${gameState.flash})`;
       context.fillRect(0, 0, w, h);
     }
+    Game.yardDrawing.preview();
     context.restore();
-    if (Game.camera.viewport.mobile) {
+    if (Game.camera.viewport.mobile && gameState.mode !== 'building') {
       Game.renderer.drawHomeDirection(camera);
     }
   }

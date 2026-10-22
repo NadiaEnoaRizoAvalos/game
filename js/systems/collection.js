@@ -5,6 +5,8 @@
   'use strict';
 
   const Game = window.RainGame;
+  function capacity() { return Game.state.current.basketCapacity ?? Game.config.settings.basketCapacity; }
+  function pickupTime(item) { return item.time * (1 - Game.skills.level('maria', 'organization') * .04); }
   /** Suma los espacios ocupados por las prendas del canasto. */
   function usedSpace() {
     return Game.state.current.basket.reduce((s, p) => s + p.size, 0);
@@ -17,6 +19,7 @@
 
   /** Busca la prenda colgada más cercana dentro del alcance de recogida. */
   function nearest() {
+    if (Game.state.current.scene === 'house') return null;
     let best = null;
     let dist = Infinity;
     for (const p of Game.state.current.items) {
@@ -37,29 +40,36 @@
     if (!Game.state.current.basket.length) {
       return;
     }
-    const points = Game.state.current.basket.reduce((s, p) => s + Game.collection.scoreFor(p), 0);
+    const family = Game.state.current.basket.filter(p => !p.orderId);
+    const points = family.reduce((s, p) => s + Game.collection.scoreFor(p), 0);
     Game.state.current.depositAnim = {
+      scene: Game.state.current.scene,
       time: 0,
       duration: 1.1,
       points,
+      orderOnly: family.length === 0,
       items: Game.state.current.basket.map(p => ({
         ...p
       })),
       x: Game.state.current.player.x,
       y: Game.state.current.player.y
     };
-    Game.state.current.basket.forEach(p => p.status = 'saved');
-    Game.state.current.saved += Game.state.current.basket.length;
+    Game.state.current.basket.forEach(p => p.status = p.orderId ? 'stored' : 'saved');
+    Game.state.current.saved += family.length;
     Game.state.current.basket = [];
     Game.state.current.points += points;
     Game.audio.play('deposit');
     Game.effects.burst(Game.config.settings.door.x, Game.config.settings.door.y - 20, '#f0d486', 14);
-    Game.hud.toast(`¡A salvo! +${points} puntos guardados`);
+    Game.hud.toast(family.length ? `¡A salvo! +${points} puntos guardados` : 'Prendas guardadas bajo techo. Revisá el pedido para entregar.');
+    Game.saves?.auto('descarga');
   }
 
   /** Retira la prenda de la soga e inicia su viaje animado al canasto. */
   function completePickup(target) {
+    if (!Game.state.current.items.includes(target) || target.status !== 'hanging' ||
+        usedSpace() + target.size > capacity()) return;
     target.status = 'basket';
+    if (target.orderId) target.slot = null;
     Game.state.current.basket.push(target);
     Game.state.current.flights.push({
       item: {
@@ -71,11 +81,13 @@
       duration: 0.55
     });
     Game.state.current.collectPulse = 0.55;
+    Game.skills.gain('maria', ['organization', 'speed']);
     Game.effects.burst(target.x, target.y - 30, target.color);
     Game.audio.play('collect');
     Game.state.current.progress = 0;
     Game.state.current.target = null;
-    if (Game.collection.usedSpace() >= Game.config.settings.basketCapacity) {
+    Game.saves?.auto('recogida');
+    if (Game.collection.usedSpace() >= capacity()) {
       Game.audio.play('full');
       Game.hud.toast('Canasto lleno. ¡Volvé a la puerta!');
     }
@@ -84,9 +96,13 @@
   /** Procesa descarga, objetivo y progreso de recogida; soltar cancela el progreso. */
   function updateCollection(deltaSeconds) {
     const gameState = Game.state.current;
-    if (Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius) {
+    const atDoor = gameState.scene !== 'house' && Math.hypot(gameState.player.x - Game.config.settings.door.x, gameState.player.y - Game.config.settings.door.y) < Game.config.settings.door.radius;
+    if (gameState.laundry && !atDoor) gameState.laundry.leaveDoor = false;
+    if (atDoor && !gameState.laundry?.leaveDoor) {
       Game.collection.deposit();
     }
+    if (Game.house?.interact()) return;
+    if (Game.laundry?.interact(deltaSeconds)) return;
     const target = Game.collection.nearest();
     if (target !== gameState.target) {
       gameState.target = target;
@@ -96,7 +112,7 @@
       gameState.progress = 0;
       return;
     }
-    if (Game.collection.usedSpace() + target.size > Game.config.settings.basketCapacity) {
+    if (Game.collection.usedSpace() + target.size > capacity()) {
       gameState.progress = 0;
       if (Game.runtime.toastTime <= 0) {
         Game.hud.toast('No hay espacio para esta prenda. Descargá en casa.');
@@ -104,11 +120,13 @@
       return;
     }
     gameState.progress += deltaSeconds;
-    if (gameState.progress >= target.time) {
+    if (gameState.progress >= pickupTime(target)) {
       Game.collection.completePickup(target);
     }
   }
   Game.collection = {
+    pickupTime,
+    capacity,
     usedSpace: usedSpace,
     scoreFor: valueOf,
     nearest: nearest,

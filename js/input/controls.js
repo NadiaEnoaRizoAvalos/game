@@ -40,6 +40,7 @@
 
   /** Suelta teclas y contactos y centra el joystick para evitar movimiento trabado. */
   function clearInputs() {
+    Game.runtime.houseTap = false;
     Game.controls.joystick.x = 0;
     Game.controls.joystick.y = 0;
     Game.controls.joystick.pointer = null;
@@ -84,11 +85,13 @@
   /** Conecta los eventos de este módulo; se llama una sola vez desde main.js. */
   function init() {
     window.addEventListener('keydown', e => {
+      if (Game.state.current.mode === 'building') { Game.buildMenu.key(e); return; }
       const k = Game.controls.keyMap[e.key] || Game.controls.keyMap[e.key.toLowerCase()];
       if (k && Game.state.current.mode === 'playing') {
         e.preventDefault();
         Game.controls.keyboardHeld.add(k);
         Game.controls.refreshTouchKeys();
+        if (k === 'collect' && !e.repeat) Game.house?.queueAction();
       }
       if ((e.key === 'Escape' || e.key === 'p') && !e.repeat) {
         Game.screens.pause();
@@ -155,6 +158,7 @@
         });
         Game.controls.refreshTouchKeys();
         b.classList.add('pressed');
+        if (b.dataset.key === 'collect') Game.house?.queueAction();
       });
       for (const event of ['pointerup', 'pointercancel', 'lostpointercapture']) {
         b.addEventListener(event, e => {

@@ -249,13 +249,21 @@ h1 em {
   background:var(--grass)
 }
 
-canvas {
+#game {
   display:block;
   width:100%;
   height:auto;
   aspect-ratio:25/16;
   image-rendering:pixelated;
   touch-action:none
+}
+
+#customer-portrait {
+  display:block;
+  width:90px;
+  height:90px;
+  margin:0 auto;
+  image-rendering:pixelated
 }
 
 .overlay {
@@ -304,6 +312,33 @@ canvas {
   z-index:-1;
   background:radial-gradient(circle at 7% 10%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 93% 10%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 7% 90%,#605647 0 3px,#d7b37a 4px,transparent 5px),radial-gradient(circle at 93% 90%,#605647 0 3px,#d7b37a 4px,transparent 5px)
 }
+
+/* El contenido largo se desplaza dentro del tablón; la madera permanece fija. */
+.panel-scroll {
+  min-height:0;
+  overflow-y:auto;
+  overscroll-behavior:contain;
+  touch-action:pan-y
+}
+
+/* La construcción usa el mismo tablón de madera y deja visible el patio. */
+.build-toolbar {
+  position:absolute;
+  z-index:4;
+  bottom:max(8px,env(safe-area-inset-bottom));
+  left:max(8px,env(safe-area-inset-left));
+  right:max(8px,env(safe-area-inset-right));
+  padding:8px;
+  color:#f7e9b8;
+  background:#987951;
+  border:3px solid #d1bb89;
+  box-shadow:0 4px 0 #69604b;
+}
+.build-toolbar[hidden],.touch-controls[hidden] { display:none!important }
+.build-toolbar p { margin:0 0 6px;font-size:11px;line-height:1.35 }
+.build-actions { display:flex;gap:5px;flex-wrap:wrap;justify-content:center }
+.build-actions button { padding:8px 9px;min-height:36px;font-size:10px }
+.build-actions button:disabled { opacity:.55;cursor:not-allowed }
 
 .eyebrow {
   font-size:10px;
@@ -1061,7 +1096,7 @@ body {
     padding:0
   }
 
-  canvas {
+  #game {
     position:absolute;
     inset:0;
     display:block;
@@ -1316,7 +1351,9 @@ body {
   }
 
   .level-chip strong {
-    font-size:9px
+    font-size:9px;
+    white-space:pre-line;
+    line-height:1.1
   }
 
   .stat strong {
@@ -1391,6 +1428,11 @@ html {
 
   .level-chip>span,.stat>span {
     font-size:6px
+  }
+
+  /* Conserva la etiqueta abreviada sin duplicar el texto en horizontal. */
+  .score-stat>span {
+    font-size:0
   }
 
   .level-chip strong {
@@ -1530,5 +1572,13 @@ html {
     padding:10px 13px
   }
 
+}
+
+
+/* Mantener el fondo original fuera del área desplazable en todas las orientaciones. */
+.panel {
+  display:flex;
+  flex-direction:column;
+  overflow:hidden
 }
 

@@ -24,7 +24,8 @@
             }
             return {
               mode: Game.state.current.mode,
-              level: Game.state.current.index + 1,
+              day: Game.state.current.day ?? null,
+              time: Game.state.current.campaign ? Game.calendar.time(Game.state.current) : null,
               points: Game.state.current.total + Game.state.current.points,
               basket: Game.collection.usedSpace(),
               rainIntensity: Game.state.current.rainIntensity,

@@ -9,20 +9,64 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23f6f2e7'/%3E%3Cpath d='M8 12h16l-2 14H10z' fill='%23bb754c'/%3E%3Cpath d='M11 13V9a5 5 0 0 1 10 0v4' fill='none' stroke='%233c5547' stroke-width='3'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 <script defer src="js/core/namespace.js"></script>
+<script defer src="js/core/preferences.js"></script>
 <script defer src="js/config/game-config.js"></script>
+<script defer src="js/config/laundry-config.js"></script>
+<script defer src="js/config/climate-config.js"></script>
+<script defer src="js/config/family-config.js"></script>
+<script defer src="js/config/house-config.js"></script>
+<script defer src="js/config/yard-config.js"></script>
+<script defer src="js/config/automation-config.js"></script>
 <script defer src="js/core/math.js"></script>
 <script defer src="js/ui/dom.js"></script>
 <script defer src="js/audio/audio.js"></script>
 <script defer src="js/core/state.js"></script>
+<script defer src="js/systems/calendar.js"></script>
+<script defer src="js/systems/orders.js"></script>
+<script defer src="js/systems/customers.js"></script>
+<script defer src="js/systems/laundry.js"></script>
+<script defer src="js/systems/climate.js"></script>
+<script defer src="js/systems/reputation.js"></script>
+<script defer src="js/systems/economy.js"></script>
+<script defer src="js/systems/family.js"></script>
+<script defer src="js/systems/house.js"></script>
+<script defer src="js/systems/yard.js"></script>
+<script defer src="js/systems/skills.js"></script>
+<script defer src="js/systems/navigation.js"></script>
+<script defer src="js/systems/helper.js"></script>
+<script defer src="js/systems/automation.js"></script>
+<script defer src="js/systems/guide.js"></script>
+<script defer src="js/persistence/automation-schema.js"></script>
+<script defer src="js/persistence/yard-schema.js"></script>
+<script defer src="js/persistence/house-schema.js"></script>
+<script defer src="js/persistence/family-schema.js"></script>
+<script defer src="js/persistence/laundry-schema.js"></script>
+<script defer src="js/persistence/climate-schema.js"></script>
+<script defer src="js/persistence/format.js"></script>
+<script defer src="js/persistence/database.js"></script>
+<script defer src="js/persistence/saves.js"></script>
 <script defer src="js/systems/player.js"></script>
 <script defer src="js/systems/collection.js"></script>
 <script defer src="js/systems/weather.js"></script>
 <script defer src="js/systems/effects.js"></script>
 <script defer src="js/ui/hud.js"></script>
 <script defer src="js/ui/screens.js"></script>
+<script defer src="js/ui/orders-menu.js"></script>
+<script defer src="js/ui/climate-menu.js"></script>
+<script defer src="js/ui/family-menu.js"></script>
+<script defer src="js/ui/house-menu.js"></script>
+<script defer src="js/ui/build-menu.js"></script>
+<script defer src="js/ui/automation-menu.js"></script>
+<script defer src="js/ui/guide-menu.js"></script>
+<script defer src="js/ui/save-menu.js"></script>
 <script defer src="js/rendering/drawing.js"></script>
 <script defer src="js/rendering/sprites.js"></script>
 <script defer src="js/rendering/world.js"></script>
+<script defer src="js/rendering/laundry.js"></script>
+<script defer src="js/rendering/family.js"></script>
+<script defer src="js/rendering/customers.js"></script>
+<script defer src="js/rendering/house.js"></script>
+<script defer src="js/rendering/yard.js"></script>
 <script defer src="js/rendering/renderer.js"></script>
 <script defer src="js/input/controls.js"></script>
 <script defer src="js/rendering/camera.js"></script>
@@ -31,6 +75,7 @@
 <script defer src="js/main.js"></script>
 </head>
 <body>
+<input type="file" id="import-file" accept=".json,application/json" hidden>
 <div id="weather-veil" class="weather-veil" aria-hidden="true">
 </div>
 <main class="shell">
@@ -83,7 +128,7 @@
 <span>CANASTO</span>
 <strong>
 <span id="capacity">0</span>
-<small> / 6</small>
+<small> / <span id="capacity-max">6</span></small>
 </strong>
 <div class="capacity-track">
 <i id="capacity-bar">
@@ -95,6 +140,12 @@
 <div class="stage">
 <canvas id="game" width="1000" height="640" aria-label="Patio visto desde arriba, con una casa arriba a la izquierda y tres sogas distribuidas por el mapa. Usá WASD o flechas para moverte y mantené Espacio para recoger.">
 </canvas>
+<div id="build-toolbar" class="build-toolbar" hidden aria-label="Construcción del patio">
+<p id="build-status" role="status" aria-live="polite"></p>
+<div class="build-actions">
+<button class="secondary" data-build="left" aria-label="Casilla a la izquierda">←</button><button class="secondary" data-build="up" aria-label="Casilla arriba">↑</button><button class="secondary" data-build="down" aria-label="Casilla abajo">↓</button><button class="secondary" data-build="right" aria-label="Casilla a la derecha">→</button>
+<button class="secondary" data-build="rotate">GIRAR</button><button class="primary" id="build-confirm" data-build="confirm">CONFIRMAR</button><button class="secondary" data-build="catalog">CATÁLOGO</button><button class="secondary" data-build="close">SALIR</button>
+</div></div>
 <div id="overlay" class="overlay">
 <div id="panel" class="panel">
 </div>
@@ -123,7 +174,7 @@
 <span>
 <kbd>W A S D</kbd> / <kbd>↑ ← ↓ →</kbd> Caminar</span>
 <span>
-<kbd>ESPACIO</kbd> Descolgar</span>
+<kbd>ESPACIO</kbd> Acción</span>
 <span>⌂ Volvé a casa para guardar</span>
 </footer>
 </main>
