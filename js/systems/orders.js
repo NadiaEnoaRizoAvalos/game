@@ -75,6 +75,14 @@
     return null;
   }
 
+  function reject(id) {
+    const s = current(), order = s.orders.find(o => o.id === id);
+    if (!order || order.state !== 'available' || order.offeredDay !== s.day) return 'Este pedido ya no está disponible.';
+    order.state = 'rejected'; order.rejectedDay = s.day;
+    Game.saves?.auto('pedido rechazado');
+    return null;
+  }
+
   function atDoor() {
     const s = current();
     if (s.scene === 'house') return false;
@@ -115,5 +123,5 @@
     Game.saves?.auto('compra de insumos');
     return null;
   }
-  Game.orders = { initialize, generate, customer, goods, stage, accept, deliver, atDoor, buySupplies };
+  Game.orders = { initialize, generate, customer, goods, stage, accept, reject, deliver, atDoor, buySupplies };
 })();

@@ -85,6 +85,7 @@
       }
     }
     Game.yardDrawing.ground();
+    Game.customerDrawing.ground();
     // Ground markers make the collection radius readable from either side.
     const target = gameState.mode === 'playing' ? Game.collection.nearest() : null;
     if (target) {
@@ -131,6 +132,7 @@
     }))];
     if (gameState.laundry) layers.push({ y: Game.config.laundry.station.y, draw: Game.laundryDrawing.draw });
     layers.push(...Game.yardDrawing.layers());
+    for (const v of Game.customers.waiting()) layers.push({ y: v.y, draw: () => Game.customerDrawing.draw(v) });
     if (gameState.family && !gameState.house.layoutVersion) for (const m of gameState.family.members) layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) });
     if (gameState.workshop?.helper.scene === 'yard') { const m = gameState.family.members.find(m => m.id === 'jaqui'); layers.push({ y: m.y, draw: () => Game.familyDrawing.member(m) }); }
     layers.sort((a, b) => a.y - b.y).forEach(l => l.draw());

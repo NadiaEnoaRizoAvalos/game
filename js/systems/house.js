@@ -50,7 +50,11 @@
   function context() {
     const s = current();
     if (!s.house?.layoutVersion) return null;
-    if (s.scene !== 'house') return Game.orders.atDoor() ? { kind: 'enter', label: 'ENTRAR' } : Game.yard.context();
+    if (s.scene !== 'house') {
+      if (Game.orders.atDoor()) return { kind: 'enter', label: 'ENTRAR' };
+      const visitor = Game.customers.nearby();
+      return visitor ? { kind: 'customer', label: 'ATENDER', visitor } : Game.yard.context();
+    }
     if (near(s.player, cfg().door.x, cfg().door.y, cfg().door.radius)) return { kind: 'exit', label: 'SALIR' };
     const f = furniture(s).filter(f => near(s.player, f.x + f.w / 2, f.y + f.h + 12, 45))
       .sort((a, b) => Math.hypot(s.player.x - a.x - a.w / 2, s.player.y - a.y - a.h) - Math.hypot(s.player.x - b.x - b.w / 2, s.player.y - b.y - b.h))[0];
@@ -58,10 +62,10 @@
     const member = s.family.members.find(m => Game.family.present(m.id) && !(m.id === 'jaqui' && s.workshop?.helper.scene === 'yard') && near(s.player, m.x, m.y, 32));
     return member ? { kind: 'talk', label: 'HABLAR', member } : null;
   }
-  function transition(scene) {
+  function transition(scene, customerId = null) {
     const s = current();
     if (!['house', 'yard'].includes(scene)) return false;
-    if (scene === 'house' && (s.scene === 'house' || !Game.orders.atDoor())) return false;
+    if (scene === 'house' && (s.scene === 'house' || (!Game.orders.atDoor() && !(customerId && Game.customers.nearby(customerId))))) return false;
     if (scene === 'yard' && (s.scene !== 'house' || !near(s.player, cfg().door.x, cfg().door.y, cfg().door.radius))) return false;
     s.scene = scene;
     Object.assign(s.player, scene === 'house' ? { x: cfg().door.x, y: cfg().door.y - 35 } : { x: 174, y: 270 });
@@ -87,6 +91,7 @@
     if ((!held && !tapped) || Game.runtime.houseLatch) return true;
     Game.runtime.houseLatch = true;
     if (a.kind === 'enter' || a.kind === 'exit') transition(a.kind === 'enter' ? 'house' : 'yard');
+    else if (a.kind === 'customer') Game.customers.attend(a.visitor.order.id);
     else {
       Game.screens.pause();
       if (a.kind === 'storage') Game.houseMenu.storage();

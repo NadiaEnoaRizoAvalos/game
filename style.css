@@ -249,13 +249,21 @@ h1 em {
   background:var(--grass)
 }
 
-canvas {
+#game {
   display:block;
   width:100%;
   height:auto;
   aspect-ratio:25/16;
   image-rendering:pixelated;
   touch-action:none
+}
+
+#customer-portrait {
+  display:block;
+  width:90px;
+  height:90px;
+  margin:0 auto;
+  image-rendering:pixelated
 }
 
 .overlay {
@@ -1088,7 +1096,7 @@ body {
     padding:0
   }
 
-  canvas {
+  #game {
     position:absolute;
     inset:0;
     display:block;

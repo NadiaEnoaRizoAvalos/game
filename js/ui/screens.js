@@ -93,6 +93,7 @@
 ${Game.state.current.campaign ? '<button class="secondary" data-action="saves">PARTIDAS Y RESPALDOS</button>' : ''}
 ${Game.state.current.campaign ? '<button class="secondary" data-action="endDay">FINALIZAR DÍA</button>' : ''}
 ${Game.state.current.laundry ? '<button class="secondary" data-action="orders">PEDIDOS E INSUMOS</button>' : ''}
+${Game.state.current.laundry ? '<button class="secondary" data-action="customers">ATENDER VECINOS</button>' : ''}
 ${Game.state.current.climate ? '<button class="secondary" data-action="forecast">PRONÓSTICO Y REPUTACIÓN</button>' : ''}
 ${Game.state.current.family ? '<button class="secondary" data-action="family">FAMILIA Y ECONOMÍA</button>' : ''}
 ${Game.state.current.house?.layoutVersion ? '<button class="secondary" data-action="house">CASA Y MUEBLES</button>' : ''}
@@ -164,6 +165,9 @@ ${s.family ? `<p>Ingresos de hoy: $${Game.economy.summary(s.day).income} · Gast
 <b>4.</b> El canasto tiene 6 unidades de volumen: una sábana ocupa 3.<br>
 <b>5.</b> Al terminar el día, elegí seguir en el patio o avanzar. La ropa pendiente y los puntos se conservan. También podés finalizar desde Pausa.<br>
 <b>6.</b> En Partidas y respaldos podés guardar o descargar una copia JSON. El juego guarda automáticamente mientras jugás.</p>
+<p><b>Vecinos:</b> esperan al costado de la entrada. Acercate y presioná Espacio/acción para atenderlos en casa.
+El cartel muestra su retrato, prendas, precio, plazo y calidad: podés aceptar o rechazar.
+Dentro de la casa también podés usar Pausa → Atender vecinos.</p>
 <p><b>Lavandería:</b> abrí Pausa → Pedidos e insumos. Aceptá un encargo, acercate a la puerta y cargá sus prendas.
 Caminá al lavadero a la derecha de la casa y mantené Espacio/acción para lavar. Cada prenda usa 2 de agua y 1 de jabón.
 Llevá la ropa limpia a un lugar libre de las sogas y presioná acción para tender; soltá entre prendas.

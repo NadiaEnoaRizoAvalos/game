@@ -2,7 +2,7 @@
 (() => {
   'use strict';
   const Game = window.RainGame;
-  function validate(s, check, number, object) {
+  function validate(s, check, number, object, version = 9) {
     const cfg = Game.config.laundry;
     const data = s.laundry;
     check(object(data), 'datos de lavandería');
@@ -40,9 +40,11 @@
       check(number(o.offeredDay, 1, s.day, true) && number(o.dueDay, o.offeredDay, o.offeredDay + 30, true), 'plazo');
       check(Object.hasOwn(Game.config.garments, o.type) && number(o.count, 1, 12, true), 'prendas del pedido');
       check(number(o.price, 1, 1e6, true) && number(o.requiredQuality, 1, 100) && typeof o.urgent === 'boolean', 'precio y calidad');
-      check(['available', 'accepted', 'expired', 'delivered'].includes(o.state), 'estado del pedido');
+      check(['available', 'accepted', 'expired', 'delivered', ...(version >= 9 ? ['rejected'] : [])].includes(o.state), 'estado del pedido');
+      if (o.state === 'rejected') check(number(o.rejectedDay, o.offeredDay, s.day, true), 'día del rechazo');
+      else check(o.rejectedDay == null, 'rechazo contradictorio');
       const items = s.items.filter(p => p.orderId === o.id);
-      if (['available', 'expired'].includes(o.state)) {
+      if (['available', 'expired', 'rejected'].includes(o.state)) {
         check(items.length === 0 && o.acceptedDay === null && o.deliveredDay === null && o.paid === 0, 'pedido no aceptado con prendas o cobros');
       } else {
         check(number(o.acceptedDay, o.offeredDay, s.day, true) && items.length === o.count && items.every(p => p.type === o.type), 'integridad del pedido');

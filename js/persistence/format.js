@@ -3,7 +3,7 @@
   'use strict';
   const Game = window.RainGame;
   const FORMAT = 'antes-de-la-lluvia';
-  const VERSION = 8;
+  const VERSION = 9;
   const MAX_BYTES = 5 * 1024 * 1024;
   const fields = ['day', 'daySeconds', 'elapsed', 'points', 'saved', 'nextGarmentId',
     'basketCapacity', 'player', 'rainIntensity', 'rainStarted', 'stormAnnounced',
@@ -38,7 +38,7 @@
   function validate(envelope) {
     safeTree(envelope);
     check(object(envelope) && envelope.format === FORMAT, 'archivo de otro juego');
-    check([1, 2, 3, 4, 5, 6, 7, VERSION].includes(envelope.version), 'versión incompatible');
+    check([1, 2, 3, 4, 5, 6, 7, 8, VERSION].includes(envelope.version), 'versión incompatible');
     check(typeof envelope.savedAt === 'string' && Number.isFinite(Date.parse(envelope.savedAt)), 'fecha');
     const s = envelope.data;
     check(object(s), 'faltan datos');
@@ -96,7 +96,7 @@
     }
     check(volume <= s.basketCapacity, 'canasto sobrecargado');
     check(saved === s.saved, 'contador de ropa guardada');
-    if (envelope.version >= 2) Game.laundrySchema.validate(s, check, number, object);
+    if (envelope.version >= 2) Game.laundrySchema.validate(s, check, number, object, envelope.version);
     if (envelope.version >= 3) Game.climateSchema.validate(s, check, number, object);
     if (envelope.version >= 4) Game.familySchema.validate(s, check, number, object);
     if (envelope.version >= 7) Game.automationSchema.validate(s, check, number, object);
